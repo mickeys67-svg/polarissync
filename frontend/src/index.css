@@ -204,6 +204,31 @@ h3,
   z-index: 0;
 }
 
+.blink-text {
+  animation: blink-red 1.5s infinite alternate;
+  text-align: center;
+  width: 100%;
+}
+
+@keyframes blink-red {
+  0% {
+    opacity: 0.4;
+    text-shadow: 0 0 5px var(--nebula-red);
+  }
+
+  100% {
+    opacity: 1;
+    text-shadow: 0 0 20px var(--nebula-red), 0 0 30px var(--nebula-red);
+  }
+}
+
+.footer-container {
+  margin-top: 3rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 /* Layout Utilities */
 .flex-center {
   display: flex;

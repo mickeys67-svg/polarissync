@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Smartphone, Target, Cpu, Compass } from 'lucide-react';
+import { Smartphone, Target, Compass } from 'lucide-react';
 
 interface Step1_Props {
     onComplete: () => void;
@@ -35,44 +35,70 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
         setGpsStatus('checking');
         setSensorStatus('checking');
 
-        // 1. Check GPS
+        // 1. Check GPS with cross-check (timeout + validation)
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(
-                () => setGpsStatus('success'),
+                (pos) => {
+                    if (pos.coords.latitude !== 0) {
+                        setGpsStatus('success');
+                    } else {
+                        setGpsStatus('error');
+                    }
+                },
                 (err) => {
                     console.error("GPS Error:", err);
                     setGpsStatus('error');
                 },
-                { timeout: 5000 }
+                { timeout: 8000, enableHighAccuracy: true }
             );
         } else {
             setGpsStatus('error');
         }
 
-        // 2. Check Orientation Sensors
-        try {
-            // iOS 13+ requires explicit permission
-            if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-                const response = await (DeviceOrientationEvent as any).requestPermission();
-                if (response === 'granted') {
-                    setSensorStatus('success');
+        // 2. Check Orientation Sensors with live cross-check
+        const checkSensors = async () => {
+            try {
+                // iOS 13+ requires explicit permission
+                let granted = false;
+                if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+                    const response = await (DeviceOrientationEvent as any).requestPermission();
+                    granted = (response === 'granted');
+                } else {
+                    granted = true; // Android/Desktop
+                }
+
+                if (granted) {
+                    // Cross-check: Listen for one actual event to confirm it's firing
+                    const validator = (e: DeviceOrientationEvent) => {
+                        if (e.alpha !== null) {
+                            setSensorStatus('success');
+                            window.removeEventListener('deviceorientation', validator);
+                        }
+                    };
+                    window.addEventListener('deviceorientation', validator);
+
+                    // Fail if no event after 5 seconds
+                    setTimeout(() => {
+                        window.removeEventListener('deviceorientation', validator);
+                        setSensorStatus(prev => prev === 'success' ? 'success' : 'error');
+                    }, 5000);
                 } else {
                     setSensorStatus('error');
                 }
-            } else {
-                // Android or older iOS - usually granted by default
-                // We add a small delay to simulate scanning
-                setTimeout(() => setSensorStatus('success'), 1500);
+            } catch (err) {
+                console.error("Sensor Error:", err);
+                setSensorStatus('error');
             }
-        } catch (err) {
-            console.error("Sensor Error:", err);
-            setSensorStatus('error');
-        }
+        };
+
+        checkSensors();
     };
 
     useEffect(() => {
         if (gpsStatus === 'success' && sensorStatus === 'success') {
-            setIsSynced(true);
+            // Add a slight delay for dramatic effect/verification feel
+            const timer = setTimeout(() => setIsSynced(true), 1500);
+            return () => clearTimeout(timer);
         }
     }, [gpsStatus, sensorStatus]);
 
@@ -115,16 +141,18 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                 </p>
 
                 <div className="flex-center" style={{ position: 'relative', height: '200px', width: '100%' }}>
-                    {/* Compass Dial Background - Only show N when synced or checking */}
+                    {/* Compass Dial Background - Stop at exactly 0 (N) when synced */}
                     {(isChecking || isSynced) && (
                         <motion.div
                             animate={{
-                                rotate: isSynced ? 0 : 360,
+                                rotate: isSynced ? 0 : [0, 360],
                                 scale: isSynced ? 1 : 1.1,
-                                opacity: isSynced ? 1 : 0.3
+                                opacity: isSynced ? 1 : 0.4
                             }}
                             transition={{
-                                rotate: { repeat: isSynced ? 0 : Infinity, duration: 10, ease: "linear" },
+                                rotate: isSynced
+                                    ? { type: 'spring', stiffness: 50, damping: 15 }
+                                    : { repeat: Infinity, duration: 4, ease: "linear" },
                                 scale: { duration: 1 }
                             }}
                             className="absolute-center"
@@ -140,7 +168,7 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                                 position: 'absolute'
                             }}
                         >
-                            <div className="font-orbitron text-nebula-red" style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>N</div>
+                            <div className="font-orbitron text-nebula-red" style={{ fontSize: '1rem', fontWeight: 'bold' }}>N</div>
                         </motion.div>
                     )}
 
@@ -155,9 +183,11 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                         {isSynced && (
                             <motion.div
                                 style={{ position: 'absolute' }}
-                                animate={{ opacity: 1, rotate: -45 }}
+                                initial={{ opacity: 0, rotate: 180 }}
+                                animate={{ opacity: 1, rotate: 0 }}
+                                transition={{ type: 'spring', stiffness: 60 }}
                             >
-                                <Compass size={32} color="rgba(255,255,255,0.8)" />
+                                <Compass size={40} color="cyan" style={{ filter: 'drop-shadow(0 0 5px cyan)' }} />
                             </motion.div>
                         )}
 
@@ -234,10 +264,24 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
             </motion.div>
 
             {isSynced && (
+                <div className="footer-container">
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="glow-text-red font-orbitron blink-text"
+                        style={{ letterSpacing: '0.3rem', fontSize: '1.1rem' }}
+                    >
+                        {t.footer}
+                    </motion.div>
+                </div>
+            )}
+
+            {isSynced && (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="glass-panel guidance-card"
+                    style={{ marginTop: '2rem' }}
                 >
                     <div className="flex-center" style={{ justifyContent: 'flex-start', gap: '0.8rem', marginBottom: '0.5rem' }}>
                         <Target size={18} color="var(--nebula-red)" />
@@ -246,17 +290,6 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                     <p className="text-white-dim" style={{ fontSize: '0.95rem', lineHeight: '1.5', textAlign: 'left' }}>
                         {t.detail}
                     </p>
-                </motion.div>
-            )}
-
-            {isSynced && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="glow-text-red font-orbitron"
-                    style={{ marginTop: '2rem', letterSpacing: '0.3rem' }}
-                >
-                    {t.footer}
                 </motion.div>
             )}
         </div>
