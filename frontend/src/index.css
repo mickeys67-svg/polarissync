@@ -1,0 +1,176 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+:root {
+  --space-black: #050505;
+  --nebula-red: #FF0000;
+  --starlight-white: #E0E0E0;
+  --nebula-red-glow: rgba(255, 0, 0, 0.5);
+  --glass-bg: rgba(5, 5, 5, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --font-orbitron: 'Orbitron', sans-serif;
+  --font-pretendard: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--space-black);
+  color: var(--starlight-white);
+  font-family: var(--font-pretendard);
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+}
+
+h1,
+h2,
+h3,
+.heading-orbitron {
+  font-family: var(--font-orbitron);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Glassmorphism Utility */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Glow Effects */
+.glow-text-red {
+  text-shadow: 0 0 8px var(--nebula-red);
+}
+
+.glow-border-red {
+  box-shadow: 0 0 15px var(--nebula-red-glow), inset 0 0 5px var(--nebula-red-glow);
+  border-color: var(--nebula-red);
+}
+
+/* SVG Filter for Neons */
+.neon-svg {
+  filter: drop-shadow(0 0 8px var(--nebula-red));
+}
+
+/* Layout Classes */
+.screen-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  /* Use viewport height */
+  z-index: 10;
+  overflow-y: auto;
+  /* Enable vertical scrolling */
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* Smooth scrolling for iOS */
+
+  /* Remove flex centering from here, move to child or handle differently */
+  /* display: flex; */
+  /* flex-direction: column; */
+  /* align-items: center; */
+  /* justify-content: center; */
+}
+
+#canvas-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* Layout Utilities */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.absolute-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.full-size {
+  width: 100%;
+  height: 100%;
+}
+
+/* Typography Utilities */
+.font-orbitron {
+  font-family: var(--font-orbitron);
+}
+
+.text-nebula-red {
+  color: var(--nebula-red);
+}
+
+.text-white-dim {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Component Styles */
+.lang-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+  padding: 8px 15px;
+  color: white;
+  font-size: 0.9rem;
+  font-family: var(--font-orbitron);
+  cursor: pointer;
+  border: 1px solid var(--nebula-red);
+}
+
+.mission-success-container {
+  padding: 4rem;
+  text-align: center;
+}
+
+.slider-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.slider-label-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.custom-range {
+  width: 100%;
+  accent-color: var(--nebula-red);
+  cursor: pointer;
+}
+
+.guidance-card {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  border-left: 4px solid var(--nebula-red);
+  text-align: left;
+}

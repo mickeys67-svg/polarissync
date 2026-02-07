@@ -1,0 +1,14 @@
+{
+    "name": "polarissync-root",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "start": "node server.js",
+        "build:frontend": "cd frontend && npm install && npm run build",
+        "build:all": "npm run build:frontend"
+    },
+    "dependencies": {
+        "express": "^4.21.0"
+    }
+}
