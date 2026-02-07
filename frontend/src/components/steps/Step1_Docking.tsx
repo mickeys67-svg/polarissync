@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Smartphone, Target, Cpu } from 'lucide-react';
+import { Smartphone, Target, Cpu, Compass } from 'lucide-react';
 
 interface Step1_Props {
     onComplete: () => void;
@@ -57,17 +57,51 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                 </p>
 
                 <div className="flex-center" style={{ position: 'relative', height: '200px', width: '100%' }}>
-                    {/* Wireframe placeholder for now */}
+                    {/* Compass Dial Background */}
+                    <motion.div
+                        animate={{
+                            rotate: isSynced ? 0 : 360,
+                            scale: isSynced ? 1 : 1.1
+                        }}
+                        transition={{
+                            rotate: { repeat: isSynced ? 0 : Infinity, duration: 10, ease: "linear" },
+                            scale: { duration: 1 }
+                        }}
+                        className="absolute-center"
+                        style={{
+                            width: '180px',
+                            height: '180px',
+                            borderRadius: '50%',
+                            border: '1px dashed rgba(255, 0, 0, 0.3)',
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            justifyContent: 'center',
+                            paddingTop: '5px',
+                            position: 'absolute'
+                        }}
+                    >
+                        <div className="font-orbitron text-nebula-red" style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>N</div>
+                    </motion.div>
+
+                    {/* Smartphone Icon with inner Compass */}
                     <motion.div
                         animate={{ rotateZ: [0, 5, -5, 0] }}
                         transition={{ repeat: Infinity, duration: 4 }}
-                        style={{ position: 'relative' }}
+                        style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                         <Smartphone size={80} color="var(--nebula-red)" className="neon-svg" />
+
+                        <motion.div
+                            style={{ position: 'absolute' }}
+                            animate={{ opacity: isSynced ? 1 : 0.5, rotate: isSynced ? -45 : 0 }}
+                        >
+                            <Compass size={32} color="rgba(255,255,255,0.8)" />
+                        </motion.div>
+
                         <motion.div
                             animate={{ y: [-20, 0, -20] }}
                             transition={{ repeat: Infinity, duration: 2 }}
-                            style={{ position: 'absolute', top: '-40px', left: '0' }}
+                            style={{ position: 'absolute', top: '-40px' }}
                         >
                             <Target size={30} color="white" />
                         </motion.div>
