@@ -35,6 +35,8 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
     const [gpsStatus, setGpsStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
     const [sensorStatus, setSensorStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
     const [isChecking, setIsChecking] = useState(false);
+    const [activeEvent, setActiveEvent] = useState<'none' | 'relative' | 'absolute'>('none');
+    const [isSecure, setIsSecure] = useState(true);
 
     // Raw sensor data for debug
     const [rawData, setRawData] = useState({
@@ -45,6 +47,14 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
         lng: 0,
         accuracy: 0
     });
+
+    useEffect(() => {
+        // Check for secure context (HTTPS)
+        if (typeof window !== 'undefined' && !window.isSecureContext) {
+            console.warn("Insecure Context: Sensors will not function without HTTPS.");
+            setIsSecure(false);
+        }
+    }, []);
 
     const handleInitialization = async () => {
         setIsChecking(true);
@@ -77,25 +87,41 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
             setGpsStatus('error');
         }
 
-        // 2. Check Orientation Sensors with live data verification
+        // 2. Heavy-duty Orientation Sensor Check
         const checkSensors = async () => {
             try {
                 let granted = false;
+                // iOS Permission Request
                 if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
                     const response = await (DeviceOrientationEvent as any).requestPermission();
                     granted = (response === 'granted');
                 } else {
-                    granted = true;
+                    granted = true; // Android/Desktop
                 }
 
                 if (granted) {
                     let eventCount = 0;
-                    const handleOrientation = (e: DeviceOrientationEvent) => {
+
+                    const handleOrientation = (e: any) => {
+                        // Priority: 
+                        // 1. webkitCompassHeading (iOS)
+                        // 2. absolute orientation (Android)
+                        // 3. alpha (standard)
+                        let heading = 0;
+                        if (e.webkitCompassHeading) {
+                            heading = e.webkitCompassHeading;
+                        } else if (e.absolute === true && e.alpha !== null) {
+                            heading = 360 - e.alpha; // Android North correction
+                        } else {
+                            heading = e.alpha || 0;
+                        }
+
                         if (e.alpha !== null) {
                             eventCount++;
+                            setActiveEvent(e.absolute ? 'absolute' : 'relative');
                             setRawData(prev => ({
                                 ...prev,
-                                alpha: e.alpha || 0,
+                                alpha: heading,
                                 beta: e.beta || 0,
                                 gamma: e.gamma || 0
                             }));
@@ -105,12 +131,14 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                             }
                         }
                     };
-                    window.addEventListener('deviceorientation', handleOrientation);
 
-                    // Fallback to stop checking if failed
+                    // Register both for maximum compatibility
+                    window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+                    window.addEventListener('deviceorientation', handleOrientation, true);
+
                     setTimeout(() => {
                         if (eventCount <= 5) {
-                            window.removeEventListener('deviceorientation', handleOrientation);
+                            console.error("Sensor verification timeout. Events received:", eventCount);
                             setSensorStatus('error');
                         }
                     }, 8000);
@@ -118,7 +146,7 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                     setSensorStatus('error');
                 }
             } catch (err) {
-                console.error("Sensor Error:", err);
+                console.error("Sensor Initiation Error:", err);
                 setSensorStatus('error');
             }
         };
@@ -166,6 +194,13 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                 className="glass-panel responsive-padding"
                 style={{ textAlign: 'center', maxWidth: '500px', margin: '0 auto' }}
             >
+                {!isSecure && (
+                    <div className="glass-panel glow-border-red" style={{ marginBottom: '1.5rem', background: 'rgba(255,0,0,0.1)', padding: '0.8rem' }}>
+                        <div className="font-orbitron text-nebula-red" style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>⚠️ {t.secureWarning}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)', marginTop: '0.3rem' }}>{t.insecureMsg}</div>
+                    </div>
+                )}
+
                 <h1 className="glow-text-red responsive-title">{title}</h1>
                 <p className="text-white-dim" style={{ marginBottom: '2rem' }}>
                     {slogan}
@@ -176,12 +211,12 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                     {(isChecking || isSynced) && (
                         <motion.div
                             animate={{
-                                rotate: -rawData.alpha, // Always point N to real North
+                                rotate: -rawData.alpha,
                                 scale: isSynced ? 1 : 1.1,
                                 opacity: isSynced ? 1 : 0.4
                             }}
                             transition={{
-                                rotate: { type: 'spring', stiffness: 100, damping: 20 },
+                                rotate: { type: 'spring', stiffness: 120, damping: 25 },
                                 scale: { duration: 1 }
                             }}
                             className="absolute-center"
@@ -265,7 +300,10 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
 
                         {/* Diagnostic Raw Data Panel */}
                         <div className="diagnostic-overlay">
-                            <div className="font-orbitron" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.6rem', marginBottom: '0.3rem' }}>{t.rawData}</div>
+                            <div className="flex-center" style={{ justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                                <div className="font-orbitron" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.6rem' }}>{t.rawData}</div>
+                                <div className="font-orbitron" style={{ color: activeEvent === 'none' ? 'gray' : 'cyan', fontSize: '0.6rem' }}>{t.activeEvent}: {activeEvent.toUpperCase()}</div>
+                            </div>
                             <div className="diagnostic-grid">
                                 <div className="diagnostic-item"><span>{t.alpha}</span><span className="diagnostic-value">{rawData.alpha.toFixed(1)}°</span></div>
                                 <div className="diagnostic-item"><span>{t.beta}</span><span className="diagnostic-value">{rawData.beta.toFixed(1)}°</span></div>

@@ -24,6 +24,9 @@ export interface Translations {
         gamma: string;
         precision: string;
         latLng: string;
+        secureWarning: string;
+        insecureMsg: string;
+        activeEvent: string;
     };
     step2: {
         title: string;
@@ -91,7 +94,10 @@ export const translations: Record<Language, Translations> = {
             beta: "PITCH (β)",
             gamma: "ROLL (γ)",
             precision: "GPS PRECISION",
-            latLng: "LAT / LNG"
+            latLng: "LAT / LNG",
+            secureWarning: "INSECURE CONTEXT DETECTED",
+            insecureMsg: "Sensors require HTTPS to function. Please check your connection.",
+            activeEvent: "ACTIVE DATA STREAM"
         },
         step2: {
             title: "ORBIT DANCE",
@@ -157,7 +163,10 @@ export const translations: Record<Language, Translations> = {
             beta: "피치 (β)",
             gamma: "롤 (γ)",
             precision: "GPS 정밀도",
-            latLng: "위도 / 경도"
+            latLng: "위도 / 경도",
+            secureWarning: "보안 연결(HTTPS) 아님",
+            insecureMsg: "센서 데이터는 HTTPS 환경에서만 작동합니다. 연결을 확인해주세요.",
+            activeEvent: "활성 데이터 스트림"
         },
         step2: {
             title: "스윙 캘리브레이션",
