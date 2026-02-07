@@ -27,6 +27,9 @@ interface Step1_Props {
         gamma: string;
         precision: string;
         latLng: string;
+        secureWarning: string;
+        insecureMsg: string;
+        activeEvent: string;
     };
 }
 

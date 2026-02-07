@@ -27,6 +27,8 @@ export interface Translations {
         secureWarning: string;
         insecureMsg: string;
         activeEvent: string;
+        btnPermission: string;
+        calcMode: string;
     };
     step2: {
         title: string;
@@ -97,7 +99,9 @@ export const translations: Record<Language, Translations> = {
             latLng: "LAT / LNG",
             secureWarning: "INSECURE CONTEXT DETECTED",
             insecureMsg: "Sensors require HTTPS to function. Please check your connection.",
-            activeEvent: "ACTIVE DATA STREAM"
+            activeEvent: "DATA RESOURCE",
+            btnPermission: "GRANT SENSOR PERMISSION",
+            calcMode: "ALIGNMENT LOGIC"
         },
         step2: {
             title: "ORBIT DANCE",
@@ -166,7 +170,9 @@ export const translations: Record<Language, Translations> = {
             latLng: "위도 / 경도",
             secureWarning: "보안 연결(HTTPS) 아님",
             insecureMsg: "센서 데이터는 HTTPS 환경에서만 작동합니다. 연결을 확인해주세요.",
-            activeEvent: "활성 데이터 스트림"
+            activeEvent: "데이터 소스",
+            btnPermission: "센서 권한 승인하기",
+            calcMode: "회전 보정 로직"
         },
         step2: {
             title: "스윙 캘리브레이션",
