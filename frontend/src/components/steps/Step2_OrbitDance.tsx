@@ -26,26 +26,34 @@ const Step2_OrbitDance: React.FC<Step2_Props> = ({ onComplete, t }) => {
     const [score, setScore] = useState(0);
 
     useEffect(() => {
-        // Simulate rotation change (in reality, this would come from sensors)
+        // Simulate rotation change up to 60 degrees
+        const TARGET_ANGLE = 60;
         const interval = setInterval(() => {
             setRotation(prev => {
-                const next = (prev + ALIGNMENT_CONFIG.ROTATION_SPEED * 4) % 360; // Adjusted for visual speed
+                if (prev >= TARGET_ANGLE) {
+                    clearInterval(interval);
+                    setScore(100);
+                    return TARGET_ANGLE;
+                }
+
+                const next = Math.min(prev + ALIGNMENT_CONFIG.ROTATION_SPEED * 2, TARGET_ANGLE);
 
                 // Add a trail point every few degrees
-                if (Math.floor(next / 10) !== Math.floor(prev / 10)) {
+                if (Math.floor(next / 5) !== Math.floor(prev / 5)) {
                     const id = trailIdCounter.current++;
                     setTrails(t => [...t.slice(-20), { id, angle: next }]);
                 }
 
-                // Increase score as we "orbit"
-                if (score < 98) setScore(s => s + 0.1);
+                // Sync score with rotation progress (0 to 100%)
+                const progressScore = (next / TARGET_ANGLE) * 100;
+                setScore(progressScore);
 
                 return next;
             });
         }, 50);
 
         return () => clearInterval(interval);
-    }, [score]);
+    }, []);
 
     return (
         <div className="responsive-wrapper">
