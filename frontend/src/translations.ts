@@ -13,6 +13,11 @@ export interface Translations {
         button: string;
         footer: string;
         detail: string;
+        checkTitle: string;
+        checkGps: string;
+        checkSensor: string;
+        btnCheck: string;
+        checking: string;
     };
     step2: {
         title: string;
@@ -69,7 +74,12 @@ export const translations: Record<Language, Translations> = {
             wait: "WAIT",
             button: "ENGAGE MISSION",
             footer: "SYSTEM SYNCHRONIZED",
-            detail: "Attach your smartphone to the telescope eyepiece. Ensure the camera is centered and the aurora pulse is stable."
+            detail: "Attach your smartphone to the telescope eyepiece. Ensure the camera is centered and the aurora pulse is stable.",
+            checkTitle: "SYSTEM PRE-FLIGHT CHECK",
+            checkGps: "GPS COORDINATES",
+            checkSensor: "ORIENTATION SENSORS",
+            btnCheck: "INITIALIZE SYSTEM",
+            checking: "SCANNING..."
         },
         step2: {
             title: "ORBIT DANCE",
@@ -124,7 +134,12 @@ export const translations: Record<Language, Translations> = {
             wait: "대기 중",
             button: "미션 시작",
             footer: "시스템 동기화 완료",
-            detail: "스마트폰을 망원경 접안렌즈에 장착하세요. 카메라가 중앙에 위치하고 오로라 펄스가 안정적인지 확인하세요."
+            detail: "스마트폰을 망원경 접안렌즈에 장착하세요. 카메라가 중앙에 위치하고 오로라 펄스가 안정적인지 확인하세요.",
+            checkTitle: "시스템 사전 점검",
+            checkGps: "GPS 위치 정보",
+            checkSensor: "방향 및 동작 센서",
+            btnCheck: "시스템 초기화 및 권한 승인",
+            checking: "점검 중..."
         },
         step2: {
             title: "스윙 캘리브레이션",
