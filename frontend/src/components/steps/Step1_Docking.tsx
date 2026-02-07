@@ -90,7 +90,7 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
 
                 if (granted) {
                     let eventCount = 0;
-                    const validator = (e: DeviceOrientationEvent) => {
+                    const handleOrientation = (e: DeviceOrientationEvent) => {
                         if (e.alpha !== null) {
                             eventCount++;
                             setRawData(prev => ({
@@ -100,19 +100,20 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                                 gamma: e.gamma || 0
                             }));
 
-                            // Require at least 5 distinct events to confirm real movement/flow
                             if (eventCount > 5) {
                                 setSensorStatus('success');
-                                window.removeEventListener('deviceorientation', validator);
                             }
                         }
                     };
-                    window.addEventListener('deviceorientation', validator);
+                    window.addEventListener('deviceorientation', handleOrientation);
 
+                    // Fallback to stop checking if failed
                     setTimeout(() => {
-                        window.removeEventListener('deviceorientation', validator);
-                        if (eventCount <= 5) setSensorStatus('error');
-                    }, 6000);
+                        if (eventCount <= 5) {
+                            window.removeEventListener('deviceorientation', handleOrientation);
+                            setSensorStatus('error');
+                        }
+                    }, 8000);
                 } else {
                     setSensorStatus('error');
                 }
@@ -171,18 +172,16 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                 </p>
 
                 <div className="flex-center" style={{ position: 'relative', height: '180px', width: '100%' }}>
-                    {/* Compass Dial Background */}
+                    {/* Compass Dial Background - Real North Tracking */}
                     {(isChecking || isSynced) && (
                         <motion.div
                             animate={{
-                                rotate: isSynced ? 0 : [0, 360],
+                                rotate: -rawData.alpha, // Always point N to real North
                                 scale: isSynced ? 1 : 1.1,
                                 opacity: isSynced ? 1 : 0.4
                             }}
                             transition={{
-                                rotate: isSynced
-                                    ? { type: 'spring', stiffness: 50, damping: 15 }
-                                    : { repeat: Infinity, duration: 4, ease: "linear" },
+                                rotate: { type: 'spring', stiffness: 100, damping: 20 },
                                 scale: { duration: 1 }
                             }}
                             className="absolute-center"
@@ -194,11 +193,18 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                                 display: 'flex',
                                 alignItems: 'flex-start',
                                 justifyContent: 'center',
-                                paddingTop: '5px',
+                                paddingTop: '10px',
                                 position: 'absolute'
                             }}
                         >
-                            <div className="font-orbitron text-nebula-red" style={{ fontSize: '1rem', fontWeight: 'bold' }}>N</div>
+                            <div className="font-orbitron" style={{
+                                color: isSynced ? 'cyan' : 'var(--nebula-red)',
+                                fontSize: '1.2rem',
+                                fontWeight: 'bold',
+                                textShadow: isSynced ? '0 0 10px cyan' : 'none'
+                            }}>
+                                N
+                            </div>
                         </motion.div>
                     )}
 
@@ -212,9 +218,8 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                         {isSynced && (
                             <motion.div
                                 style={{ position: 'absolute' }}
-                                initial={{ opacity: 0, rotate: 180 }}
-                                animate={{ opacity: 1, rotate: 0 }}
-                                transition={{ type: 'spring', stiffness: 60 }}
+                                initial={{ opacity: 0, scale: 0 }}
+                                animate={{ opacity: 1, scale: 1 }}
                             >
                                 <Compass size={36} color="cyan" style={{ filter: 'drop-shadow(0 0 5px cyan)' }} />
                             </motion.div>
