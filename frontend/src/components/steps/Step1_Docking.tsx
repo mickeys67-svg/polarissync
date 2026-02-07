@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Smartphone, Target, Compass } from 'lucide-react';
 
@@ -32,19 +32,23 @@ interface Step1_Props {
         activeEvent: string;
         btnPermission: string;
         calcMode: string;
+        calibrating: string;
+        stable: string;
+        jittery: string;
     };
 }
 
 const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) => {
     const [isSynced, setIsSynced] = useState(false);
     const [gpsStatus, setGpsStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
-    const [sensorStatus, setSensorStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
+    const [sensorStatus, setSensorStatus] = useState<'idle' | 'checking' | 'success' | 'error' | 'calibrating'>('idle');
     const [isChecking, setIsChecking] = useState(false);
     const [activeEvent, setActiveEvent] = useState<'none' | 'relative' | 'absolute' | 'ios'>('none');
     const [isSecure, setIsSecure] = useState(true);
     const [needsPermissionClick, setNeedsPermissionClick] = useState(false);
+    const [calibrationProgress, setCalibrationProgress] = useState(0);
 
-    // Raw sensor data for debug
+    // Raw sensor data with filtering
     const [rawData, setRawData] = useState({
         alpha: 0,
         beta: 0,
@@ -52,20 +56,24 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
         lat: 0,
         lng: 0,
         accuracy: 0,
-        displayRotation: 0
+        displayRotation: 0,
+        isStable: false
     });
 
-    // Auto-start initialization on mount
+    // Refs for filtering and stability
+    const lastRotation = useRef<number>(0);
+    const sampleBuffer = useRef<number[]>([]);
+    const calibrationRetries = useRef<number>(0);
+    const smoothingFactor = 0.18; // Slightly more responsive
+
+    // Auto-start initialization
     useEffect(() => {
         if (typeof window !== 'undefined') {
             if (!window.isSecureContext) setIsSecure(false);
-
-            // Check if iOS permission is likely needed
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
             if (isIOS && typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
                 setNeedsPermissionClick(true);
             } else {
-                // Auto-start for Android/Desktop
                 handleInitialization();
             }
         }
@@ -75,9 +83,12 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
         setIsChecking(true);
         setNeedsPermissionClick(false);
         setGpsStatus('checking');
-        setSensorStatus('checking');
+        setSensorStatus('calibrating');
+        setCalibrationProgress(0);
+        calibrationRetries.current = 0;
+        sampleBuffer.current = [];
 
-        // 1. Check GPS
+        // GPS Check
         if ("geolocation" in navigator) {
             const watchId = navigator.geolocation.watchPosition(
                 (pos) => {
@@ -103,47 +114,73 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
             setGpsStatus('error');
         }
 
-        // 2. Fixed Orientation Logic
+        // Advanced Orientation with Smoothing & Calibration
         const startOrientationTracking = () => {
-            let eventCount = 0;
+            let samplesGathered = 0;
             const handleOrientation = (e: any) => {
                 let heading = 0;
                 let rotateVal = 0;
                 let mode: 'none' | 'relative' | 'absolute' | 'ios' = 'none';
 
                 if (e.webkitCompassHeading !== undefined) {
-                    // iOS: webkitCompassHeading is CW 0-360.
-                    // To keep N fixed, we must rotate dial CCW by the heading.
                     heading = e.webkitCompassHeading;
                     rotateVal = -heading;
                     mode = 'ios';
                 } else if (e.absolute === true && e.alpha !== null) {
-                    // Android Absolute: alpha is CCW 0-360.
-                    // To keep N fixed, we rotate dial CW by alpha (standard rotation is CW in CSS).
                     heading = e.alpha;
                     rotateVal = heading;
                     mode = 'absolute';
                 } else if (e.alpha !== null) {
-                    // Standard Alpha
                     heading = e.alpha;
                     rotateVal = heading;
                     mode = 'relative';
                 }
 
                 if (e.alpha !== null || e.webkitCompassHeading !== undefined) {
-                    eventCount++;
                     setActiveEvent(mode);
+
+                    // 1. Low-Pass Filter for Smoothing
+                    // Handle 0-360 jump for smooth rotation
+                    let diff = rotateVal - lastRotation.current;
+                    if (diff > 180) lastRotation.current += 360;
+                    if (diff < -180) lastRotation.current -= 360;
+
+                    const smoothed = lastRotation.current + (rotateVal - lastRotation.current) * smoothingFactor;
+                    lastRotation.current = smoothed;
+
+                    // 2. Stability Sampling for Calibration
+                    if (samplesGathered < 30) {
+                        samplesGathered++;
+                        sampleBuffer.current.push(heading);
+                        setCalibrationProgress(Math.floor((samplesGathered / 30) * 100));
+
+                        if (samplesGathered === 30) {
+                            // Check variance for stability
+                            const mean = sampleBuffer.current.reduce((a: number, b: number) => a + b, 0) / 30;
+                            const variance = sampleBuffer.current.reduce((a: number, b: number) => a + Math.pow(b - mean, 2), 0) / 30;
+
+                            // Relaxed variance check (15 instead of 5)
+                            if (variance < 15 || calibrationRetries.current > 3) {
+                                setSensorStatus('success');
+                                setRawData(prev => ({ ...prev, isStable: true }));
+                            } else {
+                                // Jitter detected, retry sampling
+                                calibrationRetries.current++;
+                                samplesGathered = 0;
+                                sampleBuffer.current = [];
+                                setCalibrationProgress(0);
+                                setRawData(prev => ({ ...prev, isStable: false }));
+                            }
+                        }
+                    }
+
                     setRawData(prev => ({
                         ...prev,
                         alpha: heading,
                         beta: e.beta || 0,
                         gamma: e.gamma || 0,
-                        displayRotation: rotateVal
+                        displayRotation: smoothed
                     }));
-
-                    if (eventCount > 10) {
-                        setSensorStatus('success');
-                    }
                 }
             };
 
@@ -151,11 +188,10 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
             window.addEventListener('deviceorientation', handleOrientation, true);
 
             setTimeout(() => {
-                if (eventCount < 5) {
-                    console.error("Sensor connection failed. Events:", eventCount);
+                if (samplesGathered < 5) { // Only set error if not enough samples
                     setSensorStatus('error');
                 }
-            }, 10000);
+            }, 12000);
         };
 
         try {
@@ -167,14 +203,14 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                 startOrientationTracking();
             }
         } catch (err) {
-            console.error("Permission Error:", err);
+            console.error(err);
             setSensorStatus('error');
         }
     };
 
     useEffect(() => {
-        if (gpsStatus === 'success' && sensorStatus === 'success') {
-            const timer = setTimeout(() => setIsSynced(true), 2000);
+        if (gpsStatus === 'success' && (sensorStatus === 'success' || sensorStatus === 'error')) {
+            const timer = setTimeout(() => setIsSynced(true), 1500);
             return () => clearTimeout(timer);
         }
     }, [gpsStatus, sensorStatus]);
@@ -183,6 +219,7 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
         switch (status) {
             case 'success': return 'cyan';
             case 'error': return 'var(--nebula-red)';
+            case 'calibrating': return 'yellow';
             case 'checking': return 'yellow';
             default: return 'rgba(255,255,255,0.3)';
         }
@@ -327,14 +364,14 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                             <div className="flex-center" style={{ justifyContent: 'space-between', padding: '0.6rem 1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
                                 <span style={{ fontSize: '0.85rem' }}>{t.checkGps}</span>
                                 <span className="font-orbitron" style={{ color: getStatusColor(gpsStatus), fontSize: '0.9rem' }}>
-                                    {gpsStatus === 'checking' ? t.checking : gpsStatus === 'success' ? 'VALIDATED' : gpsStatus === 'error' ? 'FAILURE' : '-'}
+                                    {gpsStatus === 'checking' ? t.checking : gpsStatus === 'success' ? 'VALIDATED' : 'FAILURE'}
                                 </span>
                             </div>
 
                             <div className="flex-center" style={{ justifyContent: 'space-between', padding: '0.6rem 1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
                                 <span style={{ fontSize: '0.85rem' }}>{t.checkSensor}</span>
                                 <span className="font-orbitron" style={{ color: getStatusColor(sensorStatus), fontSize: '0.9rem' }}>
-                                    {sensorStatus === 'checking' ? t.checking : sensorStatus === 'success' ? 'VALIDATED' : sensorStatus === 'error' ? 'FAILURE' : '-'}
+                                    {sensorStatus === 'calibrating' ? `${t.calibrating} [${calibrationProgress}%]` : sensorStatus === 'success' ? 'VALIDATED' : 'FAILURE'}
                                 </span>
                             </div>
 
@@ -342,13 +379,15 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                             <div className="diagnostic-overlay">
                                 <div className="flex-center" style={{ justifyContent: 'space-between', marginBottom: '0.3rem' }}>
                                     <div className="font-orbitron" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.6rem' }}>{t.rawData}</div>
-                                    <div className="font-orbitron" style={{ color: activeEvent === 'none' ? 'gray' : 'cyan', fontSize: '0.6rem' }}>{t.activeEvent}: {activeEvent.toUpperCase()}</div>
+                                    <div className="font-orbitron" style={{ color: rawData.isStable ? 'cyan' : 'yellow', fontSize: '0.6rem' }}>
+                                        STATUS: {rawData.isStable ? t.stable : t.jittery}
+                                    </div>
                                 </div>
                                 <div className="diagnostic-grid">
                                     <div className="diagnostic-item"><span>{t.alpha}</span><span className="diagnostic-value">{rawData.alpha.toFixed(1)}°</span></div>
                                     <div className="diagnostic-item"><span>{t.beta}</span><span className="diagnostic-value">{rawData.beta.toFixed(1)}°</span></div>
                                     <div className="diagnostic-item"><span>{t.gamma}</span><span className="diagnostic-value">{rawData.gamma.toFixed(1)}°</span></div>
-                                    <div className="diagnostic-item"><span>{t.precision}</span><span className="diagnostic-value">{rawData.accuracy.toFixed(0)}m</span></div>
+                                    <div className="diagnostic-item"><span>FILTER</span><span className="diagnostic-value">{(smoothingFactor * 100).toFixed(0)}%</span></div>
                                 </div>
                                 <div style={{ marginTop: '0.4rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.3rem' }}>
                                     <span style={{ opacity: 0.5 }}>{t.calcMode}: </span>

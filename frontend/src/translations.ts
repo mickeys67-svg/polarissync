@@ -29,6 +29,9 @@ export interface Translations {
         activeEvent: string;
         btnPermission: string;
         calcMode: string;
+        calibrating: string;
+        stable: string;
+        jittery: string;
     };
     step2: {
         title: string;
@@ -101,7 +104,10 @@ export const translations: Record<Language, Translations> = {
             insecureMsg: "Sensors require HTTPS to function. Please check your connection.",
             activeEvent: "DATA RESOURCE",
             btnPermission: "GRANT SENSOR PERMISSION",
-            calcMode: "ALIGNMENT LOGIC"
+            calcMode: "ALIGNMENT LOGIC",
+            calibrating: "CALIBRATING",
+            stable: "STABLE",
+            jittery: "JITTERY"
         },
         step2: {
             title: "ORBIT DANCE",
@@ -172,7 +178,10 @@ export const translations: Record<Language, Translations> = {
             insecureMsg: "센서 데이터는 HTTPS 환경에서만 작동합니다. 연결을 확인해주세요.",
             activeEvent: "데이터 소스",
             btnPermission: "센서 권한 승인하기",
-            calcMode: "회전 보정 로직"
+            calcMode: "회전 보정 로직",
+            calibrating: "캘리브레이션 중",
+            stable: "안정됨",
+            jittery: "불안정함"
         },
         step2: {
             title: "스윙 캘리브레이션",
