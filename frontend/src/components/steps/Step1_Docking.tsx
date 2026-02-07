@@ -21,6 +21,12 @@ interface Step1_Props {
         checkSensor: string;
         btnCheck: string;
         checking: string;
+        rawData: string;
+        alpha: string;
+        beta: string;
+        gamma: string;
+        precision: string;
+        latLng: string;
     };
 }
 
