@@ -31,14 +31,13 @@ const Step4_AlignmentPulse: React.FC<Step4_Props> = ({ onComplete, t }) => {
     const isAligned = Math.abs(hPos - targetOffset.x) < 1.5 && Math.abs(vPos - targetOffset.y) < 1.5;
 
     return (
-        <div style={{ padding: '2rem', width: '100%' }}>
+        <div className="responsive-wrapper">
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="glass-panel"
-                style={{ padding: '2rem', width: '90%', maxWidth: '600px', textAlign: 'center' }}
+                className="glass-panel responsive-padding step-container"
             >
-                <h2 className="glow-text-red font-orbitron">{t.title}</h2>
+                <h2 className="glow-text-red font-orbitron responsive-h2">{t.title}</h2>
                 <p className="text-white-dim" style={{ marginBottom: '3rem' }}>{t.subtitle}</p>
 
                 {/* Dual Pulse Gauge */}

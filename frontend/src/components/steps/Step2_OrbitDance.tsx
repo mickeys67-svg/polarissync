@@ -48,15 +48,14 @@ const Step2_OrbitDance: React.FC<Step2_Props> = ({ onComplete, t }) => {
     }, [score]);
 
     return (
-        <div style={{ padding: '2rem', width: '100%' }}>
+        <div className="responsive-wrapper">
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="glass-panel"
-                style={{ padding: '2rem', textAlign: 'center', width: '90%', maxWidth: '600px', position: 'relative', overflow: 'hidden' }}
+                className="glass-panel responsive-padding step-container"
             >
                 <div style={{ marginBottom: '2rem' }}>
-                    <h2 className="glow-text-red font-orbitron" style={{ fontSize: '1.8rem' }}>{t.title}</h2>
+                    <h2 className="glow-text-red font-orbitron responsive-h2">{t.title}</h2>
                     <p className="text-white-dim" style={{ fontSize: '0.9rem' }}>{t.subtitle}</p>
                 </div>
 

@@ -17,12 +17,13 @@ const FullScreenLayout: React.FC<FullScreenLayoutProps> = ({ children }) => {
                     transition={{ duration: 1 }}
                     style={{
                         width: '100%',
-                        minHeight: '100%', /* Allow growth for scrolling */
+                        minHeight: '100dvh', /* Use dynamic viewport height */
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        padding: '2rem 0' /* Prevent edge clipping */
+                        padding: '2rem 0',
+                        boxSizing: 'border-box'
                     }}
                 >
                     {children}

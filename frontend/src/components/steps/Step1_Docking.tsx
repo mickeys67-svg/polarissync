@@ -28,7 +28,7 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
     }, []);
 
     return (
-        <div style={{ padding: '2rem', width: '100%' }}>
+        <div className="responsive-wrapper">
             {/* Aurora Effect */}
             {isSynced && (
                 <motion.div
@@ -48,10 +48,10 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                 initial={{ y: -50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ type: 'spring', stiffness: 100 }}
-                className="glass-panel"
-                style={{ padding: '3rem', textAlign: 'center', maxWidth: '500px' }}
+                className="glass-panel responsive-padding"
+                style={{ textAlign: 'center', maxWidth: '500px', margin: '0 auto' }}
             >
-                <h1 className="glow-text-red" style={{ marginBottom: '1rem', fontSize: '2.5rem' }}>{title}</h1>
+                <h1 className="glow-text-red responsive-title">{title}</h1>
                 <p className="text-white-dim" style={{ marginBottom: '2rem' }}>
                     {slogan}
                 </p>

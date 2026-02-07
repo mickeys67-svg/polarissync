@@ -39,22 +39,18 @@ const Step3_EventHorizon: React.FC<Step3_Props> = ({ onComplete, t }) => {
     const gravityEffect = Math.max(0, (1 - distToCenter / 200));
 
     return (
-        <div style={{ padding: '2rem', width: '100%' }}>
+        <div className="responsive-wrapper">
             <motion.div
                 onMouseMove={handleMouseMove}
-                className="glass-panel"
+                className="glass-panel step-container"
                 style={{
-                    width: '90%',
-                    maxWidth: '600px',
                     height: '500px',
-                    position: 'relative',
-                    overflow: 'hidden',
                     cursor: 'none',
                     border: `1px solid rgba(255, 0, 0, ${0.1 + gravityEffect * 0.5})`
                 }}
             >
-                <div style={{ padding: '1.5rem' }}>
-                    <h2 className="glow-text-red">{t.title}</h2>
+                <div className="responsive-padding">
+                    <h2 className="glow-text-red responsive-h2">{t.title}</h2>
                     <p className="text-white-dim" style={{ fontSize: '0.8rem' }}>{t.subtitle}</p>
                 </div>
 

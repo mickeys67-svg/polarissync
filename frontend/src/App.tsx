@@ -49,7 +49,7 @@ const App: React.FC = () => {
               animate={{ scale: 1, opacity: 1 }}
               className="glass-panel mission-success-container"
             >
-              <h1 className="glow-text-red" style={{ fontSize: '3rem' }}>{t.final.success}</h1>
+              <h1 className="glow-text-red responsive-hero-title">{t.final.success}</h1>
               <p className="font-orbitron" style={{ marginTop: '1rem' }}>{t.final.message}</p>
               <button
                 onClick={resetMission}

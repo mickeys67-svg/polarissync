@@ -4,7 +4,7 @@ import type { Language } from '../translations';
 export const useMissionState = () => {
     const [currentStep, setCurrentStep] = useState(1);
     const [isFinished, setIsFinished] = useState(false);
-    const [lang, setLang] = useState<Language>('en');
+    const [lang, setLang] = useState<Language>('ko');
 
     const nextStep = () => setCurrentStep(prev => prev + 1);
     const finishMission = () => setIsFinished(true);
