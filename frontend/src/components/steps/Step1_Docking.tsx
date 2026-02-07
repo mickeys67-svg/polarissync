@@ -30,58 +30,83 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
     const [sensorStatus, setSensorStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
     const [isChecking, setIsChecking] = useState(false);
 
+    // Raw sensor data for debug
+    const [rawData, setRawData] = useState({
+        alpha: 0,
+        beta: 0,
+        gamma: 0,
+        lat: 0,
+        lng: 0,
+        accuracy: 0
+    });
+
     const handleInitialization = async () => {
         setIsChecking(true);
         setGpsStatus('checking');
         setSensorStatus('checking');
 
-        // 1. Check GPS with cross-check (timeout + validation)
+        // 1. Check GPS with cross-check
         if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
+            const watchId = navigator.geolocation.watchPosition(
                 (pos) => {
-                    if (pos.coords.latitude !== 0) {
+                    setRawData(prev => ({
+                        ...prev,
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude,
+                        accuracy: pos.coords.accuracy
+                    }));
+                    if (pos.coords.accuracy < 100) { // Reasonable accuracy
                         setGpsStatus('success');
-                    } else {
-                        setGpsStatus('error');
+                        navigator.geolocation.clearWatch(watchId);
                     }
                 },
                 (err) => {
                     console.error("GPS Error:", err);
                     setGpsStatus('error');
+                    navigator.geolocation.clearWatch(watchId);
                 },
-                { timeout: 8000, enableHighAccuracy: true }
+                { timeout: 10000, enableHighAccuracy: true }
             );
         } else {
             setGpsStatus('error');
         }
 
-        // 2. Check Orientation Sensors with live cross-check
+        // 2. Check Orientation Sensors with live data verification
         const checkSensors = async () => {
             try {
-                // iOS 13+ requires explicit permission
                 let granted = false;
                 if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
                     const response = await (DeviceOrientationEvent as any).requestPermission();
                     granted = (response === 'granted');
                 } else {
-                    granted = true; // Android/Desktop
+                    granted = true;
                 }
 
                 if (granted) {
-                    // Cross-check: Listen for one actual event to confirm it's firing
+                    let eventCount = 0;
                     const validator = (e: DeviceOrientationEvent) => {
                         if (e.alpha !== null) {
-                            setSensorStatus('success');
-                            window.removeEventListener('deviceorientation', validator);
+                            eventCount++;
+                            setRawData(prev => ({
+                                ...prev,
+                                alpha: e.alpha || 0,
+                                beta: e.beta || 0,
+                                gamma: e.gamma || 0
+                            }));
+
+                            // Require at least 5 distinct events to confirm real movement/flow
+                            if (eventCount > 5) {
+                                setSensorStatus('success');
+                                window.removeEventListener('deviceorientation', validator);
+                            }
                         }
                     };
                     window.addEventListener('deviceorientation', validator);
 
-                    // Fail if no event after 5 seconds
                     setTimeout(() => {
                         window.removeEventListener('deviceorientation', validator);
-                        setSensorStatus(prev => prev === 'success' ? 'success' : 'error');
-                    }, 5000);
+                        if (eventCount <= 5) setSensorStatus('error');
+                    }, 6000);
                 } else {
                     setSensorStatus('error');
                 }
@@ -96,8 +121,7 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
 
     useEffect(() => {
         if (gpsStatus === 'success' && sensorStatus === 'success') {
-            // Add a slight delay for dramatic effect/verification feel
-            const timer = setTimeout(() => setIsSynced(true), 1500);
+            const timer = setTimeout(() => setIsSynced(true), 2000);
             return () => clearTimeout(timer);
         }
     }, [gpsStatus, sensorStatus]);
@@ -113,7 +137,7 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
 
     return (
         <div className="responsive-wrapper">
-            {/* Aurora Effect - Only show when synced */}
+            {/* Aurora Effect */}
             {isSynced && (
                 <motion.div
                     initial={{ opacity: 0 }}
@@ -140,8 +164,8 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                     {slogan}
                 </p>
 
-                <div className="flex-center" style={{ position: 'relative', height: '200px', width: '100%' }}>
-                    {/* Compass Dial Background - Stop at exactly 0 (N) when synced */}
+                <div className="flex-center" style={{ position: 'relative', height: '180px', width: '100%' }}>
+                    {/* Compass Dial Background */}
                     {(isChecking || isSynced) && (
                         <motion.div
                             animate={{
@@ -157,8 +181,8 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                             }}
                             className="absolute-center"
                             style={{
-                                width: '180px',
-                                height: '180px',
+                                width: '160px',
+                                height: '160px',
                                 borderRadius: '50%',
                                 border: '1px dashed rgba(255, 0, 0, 0.3)',
                                 display: 'flex',
@@ -172,13 +196,12 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                         </motion.div>
                     )}
 
-                    {/* Smartphone Icon with inner Compass */}
                     <motion.div
                         animate={{ rotateZ: isSynced ? [0, 5, -5, 0] : 0 }}
                         transition={{ repeat: Infinity, duration: 4 }}
                         style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
-                        <Smartphone size={80} color={isSynced ? "var(--nebula-red)" : "rgba(255,255,255,0.2)"} className={isSynced ? "neon-svg" : ""} />
+                        <Smartphone size={70} color={isSynced ? "var(--nebula-red)" : "rgba(255,255,255,0.2)"} className={isSynced ? "neon-svg" : ""} />
 
                         {isSynced && (
                             <motion.div
@@ -187,17 +210,9 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                                 animate={{ opacity: 1, rotate: 0 }}
                                 transition={{ type: 'spring', stiffness: 60 }}
                             >
-                                <Compass size={40} color="cyan" style={{ filter: 'drop-shadow(0 0 5px cyan)' }} />
+                                <Compass size={36} color="cyan" style={{ filter: 'drop-shadow(0 0 5px cyan)' }} />
                             </motion.div>
                         )}
-
-                        <motion.div
-                            animate={{ y: isSynced ? [-20, 0, -20] : 0 }}
-                            transition={{ repeat: Infinity, duration: 2 }}
-                            style={{ position: 'absolute', top: '-40px', opacity: isSynced ? 1 : 0.2 }}
-                        >
-                            <Target size={30} color="white" />
-                        </motion.div>
                     </motion.div>
                 </div>
 
@@ -208,7 +223,7 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                         onClick={handleInitialization}
                         className="glass-panel glow-border-red font-orbitron"
                         style={{
-                            marginTop: '2rem',
+                            marginTop: '1.5rem',
                             width: '100%',
                             padding: '1.2rem',
                             color: 'white',
@@ -220,21 +235,36 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                         {t.btnCheck}
                     </motion.button>
                 ) : (
-                    <div className="flex-column" style={{ marginTop: '2rem', gap: '0.5rem' }}>
-                        <div className="font-orbitron" style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.5rem' }}>{t.checkTitle}</div>
+                    <div className="flex-column" style={{ marginTop: '1.5rem', gap: '0.4rem' }}>
+                        <div className="font-orbitron" style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.4rem', letterSpacing: '0.1rem' }}>{t.checkTitle}</div>
 
-                        <div className="flex-center" style={{ justifyContent: 'space-between', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
-                            <span style={{ fontSize: '0.9rem' }}>{t.checkGps}</span>
-                            <span className="font-orbitron" style={{ color: getStatusColor(gpsStatus) }}>
-                                {gpsStatus === 'checking' ? t.checking : gpsStatus === 'success' ? 'OK' : gpsStatus === 'error' ? 'FAIL' : '-'}
+                        <div className="flex-center" style={{ justifyContent: 'space-between', padding: '0.6rem 1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <span style={{ fontSize: '0.85rem' }}>{t.checkGps}</span>
+                            <span className="font-orbitron" style={{ color: getStatusColor(gpsStatus), fontSize: '0.9rem' }}>
+                                {gpsStatus === 'checking' ? t.checking : gpsStatus === 'success' ? 'VALIDATED' : gpsStatus === 'error' ? 'FAILURE' : '-'}
                             </span>
                         </div>
 
-                        <div className="flex-center" style={{ justifyContent: 'space-between', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
-                            <span style={{ fontSize: '0.9rem' }}>{t.checkSensor}</span>
-                            <span className="font-orbitron" style={{ color: getStatusColor(sensorStatus) }}>
-                                {sensorStatus === 'checking' ? t.checking : sensorStatus === 'success' ? 'OK' : sensorStatus === 'error' ? 'FAIL' : '-'}
+                        <div className="flex-center" style={{ justifyContent: 'space-between', padding: '0.6rem 1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <span style={{ fontSize: '0.85rem' }}>{t.checkSensor}</span>
+                            <span className="font-orbitron" style={{ color: getStatusColor(sensorStatus), fontSize: '0.9rem' }}>
+                                {sensorStatus === 'checking' ? t.checking : sensorStatus === 'success' ? 'VALIDATED' : sensorStatus === 'error' ? 'FAILURE' : '-'}
                             </span>
+                        </div>
+
+                        {/* Diagnostic Raw Data Panel */}
+                        <div className="diagnostic-overlay">
+                            <div className="font-orbitron" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.6rem', marginBottom: '0.3rem' }}>{t.rawData}</div>
+                            <div className="diagnostic-grid">
+                                <div className="diagnostic-item"><span>{t.alpha}</span><span className="diagnostic-value">{rawData.alpha.toFixed(1)}°</span></div>
+                                <div className="diagnostic-item"><span>{t.beta}</span><span className="diagnostic-value">{rawData.beta.toFixed(1)}°</span></div>
+                                <div className="diagnostic-item"><span>{t.gamma}</span><span className="diagnostic-value">{rawData.gamma.toFixed(1)}°</span></div>
+                                <div className="diagnostic-item"><span>{t.precision}</span><span className="diagnostic-value">{rawData.accuracy.toFixed(0)}m</span></div>
+                            </div>
+                            <div style={{ marginTop: '0.4rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.3rem' }}>
+                                <span style={{ opacity: 0.5 }}>{t.latLng}: </span>
+                                <span style={{ color: 'rgba(255,255,255,0.8)' }}>{rawData.lat.toFixed(4)}, {rawData.lng.toFixed(4)}</span>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -243,8 +273,8 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                     <motion.button
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={onComplete}
                         className="glass-panel glow-border-red font-orbitron"
                         style={{
@@ -285,9 +315,9 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                 >
                     <div className="flex-center" style={{ justifyContent: 'flex-start', gap: '0.8rem', marginBottom: '0.5rem' }}>
                         <Target size={18} color="var(--nebula-red)" />
-                        <span className="font-orbitron text-nebula-red" style={{ fontSize: '0.8rem', letterSpacing: '0.1rem' }}>MISSION GUIDANCE</span>
+                        <span className="font-orbitron text-nebula-red" style={{ fontSize: '0.75rem', letterSpacing: '0.1rem' }}>MISSION GUIDANCE</span>
                     </div>
-                    <p className="text-white-dim" style={{ fontSize: '0.95rem', lineHeight: '1.5', textAlign: 'left' }}>
+                    <p className="text-white-dim" style={{ fontSize: '0.9rem', lineHeight: '1.4', textAlign: 'left' }}>
                         {t.detail}
                     </p>
                 </motion.div>

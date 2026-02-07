@@ -18,6 +18,12 @@ export interface Translations {
         checkSensor: string;
         btnCheck: string;
         checking: string;
+        rawData: string;
+        alpha: string;
+        beta: string;
+        gamma: string;
+        precision: string;
+        latLng: string;
     };
     step2: {
         title: string;
@@ -79,7 +85,13 @@ export const translations: Record<Language, Translations> = {
             checkGps: "GPS COORDINATES",
             checkSensor: "ORIENTATION SENSORS",
             btnCheck: "INITIALIZE SYSTEM",
-            checking: "SCANNING..."
+            checking: "SCANNING...",
+            rawData: "RAW SENSOR DATA",
+            alpha: "AZIMUTH (α)",
+            beta: "PITCH (β)",
+            gamma: "ROLL (γ)",
+            precision: "GPS PRECISION",
+            latLng: "LAT / LNG"
         },
         step2: {
             title: "ORBIT DANCE",
@@ -139,7 +151,13 @@ export const translations: Record<Language, Translations> = {
             checkGps: "GPS 위치 정보",
             checkSensor: "방향 및 동작 센서",
             btnCheck: "시스템 초기화 및 권한 승인",
-            checking: "점검 중..."
+            checking: "점검 중...",
+            rawData: "로우 센서 데이터",
+            alpha: "방위각 (α)",
+            beta: "피치 (β)",
+            gamma: "롤 (γ)",
+            precision: "GPS 정밀도",
+            latLng: "위도 / 경도"
         },
         step2: {
             title: "스윙 캘리브레이션",
