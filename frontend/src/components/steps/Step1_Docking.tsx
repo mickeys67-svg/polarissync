@@ -30,6 +30,8 @@ interface Step1_Props {
         secureWarning: string;
         insecureMsg: string;
         activeEvent: string;
+        btnPermission: string;
+        calcMode: string;
     };
 }
 
