@@ -142,6 +142,59 @@ h3,
   }
 }
 
+/* Orientation Lock */
+.orientation-lock-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 2rem;
+  text-align: center;
+}
+
+.orientation-button {
+  margin-top: 1.5rem;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  color: white;
+  background: rgba(255, 0, 0, 0.2);
+  border: 1px solid var(--nebula-red);
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+}
+
+.orientation-button:hover {
+  background: rgba(255, 0, 0, 0.4);
+  box-shadow: 0 0 25px rgba(255, 0, 0, 0.5);
+}
+
+/* Fallback: Force Landscape via CSS if supported orientation API is missing */
+@media screen and (orientation: portrait) {
+  .force-landscape-fallback {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    color: #fff;
+    z-index: 9999;
+  }
+}
+
 #canvas-container {
   position: fixed;
   top: 0;

@@ -12,6 +12,8 @@ interface Step2_Props {
         button: string;
         detail: string;
         direction: string;
+        lockOrientation: string;
+        lockButton: string;
     };
 }
 
@@ -24,8 +26,29 @@ const Step2_OrbitDance: React.FC<Step2_Props> = ({ onComplete, t }) => {
 
     // AI Alignment Score simulation
     const [score, setScore] = useState(0);
+    const [isLocked, setIsLocked] = useState(false);
+
+    const lockOrientation = async () => {
+        try {
+            // Fullscreen is often required for orientation lock
+            if (document.documentElement.requestFullscreen) {
+                await document.documentElement.requestFullscreen();
+            }
+
+            if ((screen.orientation as any) && (screen.orientation as any).lock) {
+                await (screen.orientation as any).lock('landscape');
+            }
+            setIsLocked(true);
+        } catch (err) {
+            console.error("Orientation lock failed:", err);
+            // Fallback: still set as locked to show the UI
+            setIsLocked(true);
+        }
+    };
 
     useEffect(() => {
+        if (!isLocked) return;
+
         // Simulate rotation change up to 60 degrees
         const TARGET_ANGLE = 60;
         const interval = setInterval(() => {
@@ -53,14 +76,30 @@ const Step2_OrbitDance: React.FC<Step2_Props> = ({ onComplete, t }) => {
         }, 50);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [isLocked]);
 
     return (
         <div className="responsive-wrapper">
+            {!isLocked && (
+                <div className="orientation-lock-container">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                    >
+                        <h2 className="glow-text-red font-orbitron">{t.lockOrientation}</h2>
+                        <p className="text-white-dim" style={{ marginTop: '1rem' }}>{t.detail}</p>
+                        <button className="orientation-button font-orbitron" onClick={lockOrientation}>
+                            {t.lockButton}
+                        </button>
+                    </motion.div>
+                </div>
+            )}
+
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="glass-panel responsive-padding step-container"
+                style={{ filter: !isLocked ? 'blur(5px)' : 'none', pointerEvents: !isLocked ? 'none' : 'auto' }}
             >
                 <div style={{ marginBottom: '2rem' }}>
                     <h2 className="glow-text-red font-orbitron responsive-h2">{t.title}</h2>

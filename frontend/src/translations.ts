@@ -22,6 +22,8 @@ export interface Translations {
         button: string;
         detail: string;
         direction: string;
+        lockOrientation: string;
+        lockButton: string;
     };
     step3: {
         title: string;
@@ -76,7 +78,9 @@ export const translations: Record<Language, Translations> = {
             instruction: "SWING THE TELESCOPE SLOWLY",
             button: "LOCK ORBIT",
             detail: "Rotate the telescope's Right Ascension (RA) axis slowly by 60 degrees. Maintain a steady pace to allow the AI to map the celestial curvature.",
-            direction: "ROTATE RIGHT (CLOCKWISE)"
+            direction: "ROTATE RIGHT (CLOCKWISE)",
+            lockOrientation: "ORIENTATION LOCK REQUIRED",
+            lockButton: "ACTIVATE LANDSCAPE LOCK"
         },
         step3: {
             title: "EVENT HORIZON",
@@ -129,7 +133,9 @@ export const translations: Record<Language, Translations> = {
             instruction: "망원경을 천천히 회전시켜 주세요",
             button: "궤도 고정",
             detail: "망원경의 적경(RA) 축을 60도 정도 천천히 회전시키세요. AI가 천구의 곡률을 매핑할 수 있도록 일정한 속도를 유지해 주세요.",
-            direction: "오른쪽으로 회전 (시계 방향)"
+            direction: "오른쪽으로 회전 (시계 방향)",
+            lockOrientation: "화면 회전 고정 필요",
+            lockButton: "가로 모드로 고정하기"
         },
         step3: {
             title: "정밀 타겟팅",
