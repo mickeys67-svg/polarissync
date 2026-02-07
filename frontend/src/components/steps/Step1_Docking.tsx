@@ -38,8 +38,9 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
     const [gpsStatus, setGpsStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
     const [sensorStatus, setSensorStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
     const [isChecking, setIsChecking] = useState(false);
-    const [activeEvent, setActiveEvent] = useState<'none' | 'relative' | 'absolute'>('none');
+    const [activeEvent, setActiveEvent] = useState<'none' | 'relative' | 'absolute' | 'ios'>('none');
     const [isSecure, setIsSecure] = useState(true);
+    const [needsPermissionClick, setNeedsPermissionClick] = useState(false);
 
     // Raw sensor data for debug
     const [rawData, setRawData] = useState({
@@ -48,23 +49,33 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
         gamma: 0,
         lat: 0,
         lng: 0,
-        accuracy: 0
+        accuracy: 0,
+        displayRotation: 0
     });
 
+    // Auto-start initialization on mount
     useEffect(() => {
-        // Check for secure context (HTTPS)
-        if (typeof window !== 'undefined' && !window.isSecureContext) {
-            console.warn("Insecure Context: Sensors will not function without HTTPS.");
-            setIsSecure(false);
+        if (typeof window !== 'undefined') {
+            if (!window.isSecureContext) setIsSecure(false);
+
+            // Check if iOS permission is likely needed
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            if (isIOS && typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+                setNeedsPermissionClick(true);
+            } else {
+                // Auto-start for Android/Desktop
+                handleInitialization();
+            }
         }
     }, []);
 
     const handleInitialization = async () => {
         setIsChecking(true);
+        setNeedsPermissionClick(false);
         setGpsStatus('checking');
         setSensorStatus('checking');
 
-        // 1. Check GPS with cross-check
+        // 1. Check GPS
         if ("geolocation" in navigator) {
             const watchId = navigator.geolocation.watchPosition(
                 (pos) => {
@@ -74,7 +85,7 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                         lng: pos.coords.longitude,
                         accuracy: pos.coords.accuracy
                     }));
-                    if (pos.coords.accuracy < 100) { // Reasonable accuracy
+                    if (pos.coords.accuracy < 100) {
                         setGpsStatus('success');
                         navigator.geolocation.clearWatch(watchId);
                     }
@@ -84,77 +95,79 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                     setGpsStatus('error');
                     navigator.geolocation.clearWatch(watchId);
                 },
-                { timeout: 10000, enableHighAccuracy: true }
+                { timeout: 15000, enableHighAccuracy: true }
             );
         } else {
             setGpsStatus('error');
         }
 
-        // 2. Heavy-duty Orientation Sensor Check
-        const checkSensors = async () => {
-            try {
-                let granted = false;
-                // iOS Permission Request
-                if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-                    const response = await (DeviceOrientationEvent as any).requestPermission();
-                    granted = (response === 'granted');
-                } else {
-                    granted = true; // Android/Desktop
+        // 2. Fixed Orientation Logic
+        const startOrientationTracking = () => {
+            let eventCount = 0;
+            const handleOrientation = (e: any) => {
+                let heading = 0;
+                let rotateVal = 0;
+                let mode: 'none' | 'relative' | 'absolute' | 'ios' = 'none';
+
+                if (e.webkitCompassHeading !== undefined) {
+                    // iOS: webkitCompassHeading is CW 0-360.
+                    // To keep N fixed, we must rotate dial CCW by the heading.
+                    heading = e.webkitCompassHeading;
+                    rotateVal = -heading;
+                    mode = 'ios';
+                } else if (e.absolute === true && e.alpha !== null) {
+                    // Android Absolute: alpha is CCW 0-360.
+                    // To keep N fixed, we rotate dial CW by alpha (standard rotation is CW in CSS).
+                    heading = e.alpha;
+                    rotateVal = heading;
+                    mode = 'absolute';
+                } else if (e.alpha !== null) {
+                    // Standard Alpha
+                    heading = e.alpha;
+                    rotateVal = heading;
+                    mode = 'relative';
                 }
 
-                if (granted) {
-                    let eventCount = 0;
+                if (e.alpha !== null || e.webkitCompassHeading !== undefined) {
+                    eventCount++;
+                    setActiveEvent(mode);
+                    setRawData(prev => ({
+                        ...prev,
+                        alpha: heading,
+                        beta: e.beta || 0,
+                        gamma: e.gamma || 0,
+                        displayRotation: rotateVal
+                    }));
 
-                    const handleOrientation = (e: any) => {
-                        // Priority: 
-                        // 1. webkitCompassHeading (iOS)
-                        // 2. absolute orientation (Android)
-                        // 3. alpha (standard)
-                        let heading = 0;
-                        if (e.webkitCompassHeading) {
-                            heading = e.webkitCompassHeading;
-                        } else if (e.absolute === true && e.alpha !== null) {
-                            heading = 360 - e.alpha; // Android North correction
-                        } else {
-                            heading = e.alpha || 0;
-                        }
+                    if (eventCount > 10) {
+                        setSensorStatus('success');
+                    }
+                }
+            };
 
-                        if (e.alpha !== null) {
-                            eventCount++;
-                            setActiveEvent(e.absolute ? 'absolute' : 'relative');
-                            setRawData(prev => ({
-                                ...prev,
-                                alpha: heading,
-                                beta: e.beta || 0,
-                                gamma: e.gamma || 0
-                            }));
+            window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+            window.addEventListener('deviceorientation', handleOrientation, true);
 
-                            if (eventCount > 5) {
-                                setSensorStatus('success');
-                            }
-                        }
-                    };
-
-                    // Register both for maximum compatibility
-                    window.addEventListener('deviceorientationabsolute', handleOrientation, true);
-                    window.addEventListener('deviceorientation', handleOrientation, true);
-
-                    setTimeout(() => {
-                        if (eventCount <= 5) {
-                            console.error("Sensor verification timeout. Events received:", eventCount);
-                            setSensorStatus('error');
-                        }
-                    }, 8000);
-                } else {
+            setTimeout(() => {
+                if (eventCount < 5) {
+                    console.error("Sensor connection failed. Events:", eventCount);
                     setSensorStatus('error');
                 }
-            } catch (err) {
-                console.error("Sensor Initiation Error:", err);
-                setSensorStatus('error');
-            }
+            }, 10000);
         };
 
-        checkSensors();
+        try {
+            if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+                const response = await (DeviceOrientationEvent as any).requestPermission();
+                if (response === 'granted') startOrientationTracking();
+                else setSensorStatus('error');
+            } else {
+                startOrientationTracking();
+            }
+        } catch (err) {
+            console.error("Permission Error:", err);
+            setSensorStatus('error');
+        }
     };
 
     useEffect(() => {
@@ -214,7 +227,7 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                     {(isChecking || isSynced) && (
                         <motion.div
                             animate={{
-                                rotate: -rawData.alpha,
+                                rotate: rawData.displayRotation,
                                 scale: isSynced ? 1 : 1.1,
                                 opacity: isSynced ? 1 : 0.4
                             }}
@@ -265,7 +278,28 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                     </motion.div>
                 </div>
 
-                {!isChecking && !isSynced ? (
+                {needsPermissionClick && !isChecking && (
+                    <motion.button
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        onClick={handleInitialization}
+                        className="glass-panel glow-border-red font-orbitron"
+                        style={{
+                            marginTop: '1.5rem',
+                            width: '100%',
+                            padding: '1.2rem',
+                            color: 'white',
+                            fontSize: '1.1rem',
+                            cursor: 'pointer',
+                            background: 'rgba(255, 0, 0, 0.1)',
+                            border: '1px solid var(--nebula-red)'
+                        }}
+                    >
+                        {t.btnPermission}
+                    </motion.button>
+                )}
+
+                {!needsPermissionClick && !isChecking && !isSynced ? (
                     <motion.button
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -284,41 +318,43 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                         {t.btnCheck}
                     </motion.button>
                 ) : (
-                    <div className="flex-column" style={{ marginTop: '1.5rem', gap: '0.4rem' }}>
-                        <div className="font-orbitron" style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.4rem', letterSpacing: '0.1rem' }}>{t.checkTitle}</div>
+                    isChecking && (
+                        <div className="flex-column" style={{ marginTop: '1.5rem', gap: '0.4rem' }}>
+                            <div className="font-orbitron" style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.4rem', letterSpacing: '0.1rem' }}>{t.checkTitle}</div>
 
-                        <div className="flex-center" style={{ justifyContent: 'space-between', padding: '0.6rem 1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <span style={{ fontSize: '0.85rem' }}>{t.checkGps}</span>
-                            <span className="font-orbitron" style={{ color: getStatusColor(gpsStatus), fontSize: '0.9rem' }}>
-                                {gpsStatus === 'checking' ? t.checking : gpsStatus === 'success' ? 'VALIDATED' : gpsStatus === 'error' ? 'FAILURE' : '-'}
-                            </span>
-                        </div>
+                            <div className="flex-center" style={{ justifyContent: 'space-between', padding: '0.6rem 1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <span style={{ fontSize: '0.85rem' }}>{t.checkGps}</span>
+                                <span className="font-orbitron" style={{ color: getStatusColor(gpsStatus), fontSize: '0.9rem' }}>
+                                    {gpsStatus === 'checking' ? t.checking : gpsStatus === 'success' ? 'VALIDATED' : gpsStatus === 'error' ? 'FAILURE' : '-'}
+                                </span>
+                            </div>
 
-                        <div className="flex-center" style={{ justifyContent: 'space-between', padding: '0.6rem 1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <span style={{ fontSize: '0.85rem' }}>{t.checkSensor}</span>
-                            <span className="font-orbitron" style={{ color: getStatusColor(sensorStatus), fontSize: '0.9rem' }}>
-                                {sensorStatus === 'checking' ? t.checking : sensorStatus === 'success' ? 'VALIDATED' : sensorStatus === 'error' ? 'FAILURE' : '-'}
-                            </span>
-                        </div>
+                            <div className="flex-center" style={{ justifyContent: 'space-between', padding: '0.6rem 1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <span style={{ fontSize: '0.85rem' }}>{t.checkSensor}</span>
+                                <span className="font-orbitron" style={{ color: getStatusColor(sensorStatus), fontSize: '0.9rem' }}>
+                                    {sensorStatus === 'checking' ? t.checking : sensorStatus === 'success' ? 'VALIDATED' : sensorStatus === 'error' ? 'FAILURE' : '-'}
+                                </span>
+                            </div>
 
-                        {/* Diagnostic Raw Data Panel */}
-                        <div className="diagnostic-overlay">
-                            <div className="flex-center" style={{ justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                                <div className="font-orbitron" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.6rem' }}>{t.rawData}</div>
-                                <div className="font-orbitron" style={{ color: activeEvent === 'none' ? 'gray' : 'cyan', fontSize: '0.6rem' }}>{t.activeEvent}: {activeEvent.toUpperCase()}</div>
-                            </div>
-                            <div className="diagnostic-grid">
-                                <div className="diagnostic-item"><span>{t.alpha}</span><span className="diagnostic-value">{rawData.alpha.toFixed(1)}°</span></div>
-                                <div className="diagnostic-item"><span>{t.beta}</span><span className="diagnostic-value">{rawData.beta.toFixed(1)}°</span></div>
-                                <div className="diagnostic-item"><span>{t.gamma}</span><span className="diagnostic-value">{rawData.gamma.toFixed(1)}°</span></div>
-                                <div className="diagnostic-item"><span>{t.precision}</span><span className="diagnostic-value">{rawData.accuracy.toFixed(0)}m</span></div>
-                            </div>
-                            <div style={{ marginTop: '0.4rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.3rem' }}>
-                                <span style={{ opacity: 0.5 }}>{t.latLng}: </span>
-                                <span style={{ color: 'rgba(255,255,255,0.8)' }}>{rawData.lat.toFixed(4)}, {rawData.lng.toFixed(4)}</span>
+                            {/* Diagnostic Raw Data Panel */}
+                            <div className="diagnostic-overlay">
+                                <div className="flex-center" style={{ justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                                    <div className="font-orbitron" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.6rem' }}>{t.rawData}</div>
+                                    <div className="font-orbitron" style={{ color: activeEvent === 'none' ? 'gray' : 'cyan', fontSize: '0.6rem' }}>{t.activeEvent}: {activeEvent.toUpperCase()}</div>
+                                </div>
+                                <div className="diagnostic-grid">
+                                    <div className="diagnostic-item"><span>{t.alpha}</span><span className="diagnostic-value">{rawData.alpha.toFixed(1)}°</span></div>
+                                    <div className="diagnostic-item"><span>{t.beta}</span><span className="diagnostic-value">{rawData.beta.toFixed(1)}°</span></div>
+                                    <div className="diagnostic-item"><span>{t.gamma}</span><span className="diagnostic-value">{rawData.gamma.toFixed(1)}°</span></div>
+                                    <div className="diagnostic-item"><span>{t.precision}</span><span className="diagnostic-value">{rawData.accuracy.toFixed(0)}m</span></div>
+                                </div>
+                                <div style={{ marginTop: '0.4rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.3rem' }}>
+                                    <span style={{ opacity: 0.5 }}>{t.calcMode}: </span>
+                                    <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.65rem' }}>{activeEvent.toUpperCase()} / CALC: {rawData.displayRotation.toFixed(1)}°</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )
                 )}
 
                 {isSynced && (
