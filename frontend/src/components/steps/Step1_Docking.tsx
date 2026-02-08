@@ -225,30 +225,15 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
         }
     }, [gpsStatus, sensorStatus]);
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'success': return 'cyan';
-            case 'error': return 'var(--nebula-red)';
-            case 'calibrating': return 'yellow';
-            case 'checking': return 'yellow';
-            default: return 'rgba(255,255,255,0.3)';
-        }
-    };
 
     return (
-        <div className="responsive-wrapper" style={{ overscrollBehavior: 'none' }}>
+        <div className="responsive-wrapper">
             {/* Aurora Effect */}
             {isSynced && (
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 0.3 }}
-                    className="aurora-bg absolute-center full-size"
-                    style={{
-                        inset: '-50px',
-                        background: 'radial-gradient(circle at center, var(--nebula-red) 0%, transparent 70%)',
-                        filter: 'blur(100px)',
-                        zIndex: -1
-                    }}
+                    className="aurora-bg aurora-bg-step1 absolute-center full-size"
                 />
             )}
 
@@ -256,22 +241,21 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                 initial={{ y: -50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ type: 'spring', stiffness: 100 }}
-                className="glass-panel responsive-padding"
-                style={{ textAlign: 'center', maxWidth: '500px', margin: '0 auto' }}
+                className="glass-panel responsive-padding step-container"
             >
                 {!isSecure && (
-                    <div className="glass-panel glow-border-red" style={{ marginBottom: '1.5rem', background: 'rgba(255,0,0,0.1)', padding: '0.8rem' }}>
-                        <div className="font-orbitron text-nebula-red" style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>⚠️ {t.secureWarning}</div>
-                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)', marginTop: '0.3rem' }}>{t.insecureMsg}</div>
+                    <div className="glass-panel glow-border-red bg-nebula-red-dim secure-warning-panel">
+                        <div className="font-orbitron text-nebula-red text-08rem font-bold">⚠️ {t.secureWarning}</div>
+                        <div className="text-white-dim text-07rem margin-top-1">{t.insecureMsg}</div>
                     </div>
                 )}
 
                 <h1 className="glow-text-red responsive-title">{title}</h1>
-                <p className="text-white-dim" style={{ marginBottom: '2rem' }}>
+                <p className="text-white-dim margin-top-4">
                     {slogan}
                 </p>
 
-                <div className="flex-center" style={{ position: 'relative', height: '180px', width: '100%' }}>
+                <div className="flex-center compass-container">
                     {/* Compass Dial Background - Real North Tracking */}
                     {(isChecking || isSynced) && (
                         <motion.div
@@ -284,39 +268,23 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                                 rotate: { type: 'spring', stiffness: 120, damping: 25 },
                                 scale: { duration: 1 }
                             }}
-                            className="absolute-center"
+                            className="absolute-center compass-dial"
                             style={{
-                                width: '160px',
-                                height: '160px',
-                                borderRadius: '50%',
-                                border: '1px dashed rgba(255, 0, 0, 0.3)',
-                                display: 'flex',
-                                alignItems: 'flex-start',
-                                justifyContent: 'center',
-                                paddingTop: '10px',
-                                position: 'absolute'
+                                opacity: isSynced ? 1 : 0.4
                             }}
                         >
-                            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <div className="north-indicator">
                                 {/* Bolder Red Arrow ABOVE N */}
                                 <svg
                                     width="20"
                                     height="12"
                                     viewBox="0 0 20 12"
-                                    style={{
-                                        marginBottom: '0px',
-                                        filter: 'drop-shadow(0 0 8px var(--nebula-red))',
-                                        zIndex: 10
-                                    }}
+                                    className="north-arrow-svg"
                                 >
                                     <path d="M10 0L20 12H0L10 0Z" fill="#FF0000" />
                                 </svg>
-                                <div className="font-orbitron" style={{
-                                    color: isSynced ? 'cyan' : '#FF0000',
-                                    fontSize: '1.3rem',
-                                    fontWeight: '900',
-                                    textShadow: isSynced ? '0 0 15px cyan' : '0 0 10px rgba(255,0,0,0.8)',
-                                    marginTop: '-2px'
+                                <div className={`font-orbitron north-text ${isSynced ? 'text-cyan' : 'text-nebula-red'}`} style={{
+                                    textShadow: isSynced ? '0 0 15px cyan' : '0 0 10px rgba(255,0,0,0.8)'
                                 }}>
                                     N
                                 </div>
@@ -327,23 +295,15 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                     <motion.div
                         animate={{ rotateZ: isSynced ? [0, 5, -5, 0] : 0 }}
                         transition={{ repeat: Infinity, duration: 4 }}
-                        style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        className="smartphone-container"
                     >
                         {/* Semi-transparent Telescope Silhouette BELOW smartphone */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: isSynced ? 0.35 : 0.3 }}
-                            style={{
-                                position: 'absolute',
-                                width: '150px',
-                                height: '180px',
-                                top: '80%', // Move down
-                                left: '50%',
-                                transform: 'translate(-50%, -20%)',
-                                zIndex: -1
-                            }}
+                            className="telescope-silhouette"
                         >
-                            <svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.2))' }}>
+                            <svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="telescope-svg">
                                 {/* Telescope pointing UP towards "POLARISSYNC" */}
                                 <path d="M45 5 L55 5 L60 80 L40 80 Z" fill="white" fillOpacity="0.7" />
                                 <path d="M35 80 L65 80 L72 115 L28 115 Z" fill="white" fillOpacity="0.5" />
@@ -356,11 +316,11 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
 
                         {isSynced && (
                             <motion.div
-                                style={{ position: 'absolute' }}
+                                className="absolute-pos"
                                 initial={{ opacity: 0, scale: 0 }}
                                 animate={{ opacity: 1, scale: 1 }}
                             >
-                                <Compass size={36} color="cyan" style={{ filter: 'drop-shadow(0 0 5px cyan)' }} />
+                                <Compass size={36} color="cyan" className="cyan-glow-filter" />
                             </motion.div>
                         )}
                     </motion.div>
@@ -371,15 +331,8 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         onClick={handleInitialization}
-                        className="glass-panel glow-border-red font-orbitron"
+                        className="glass-panel glow-border-red font-orbitron btn-step1 bg-nebula-red-dim"
                         style={{
-                            marginTop: '1.5rem',
-                            width: '100%',
-                            padding: '1.2rem',
-                            color: 'white',
-                            fontSize: '1.1rem',
-                            cursor: 'pointer',
-                            background: 'rgba(255, 0, 0, 0.1)',
                             border: '1px solid var(--nebula-red)'
                         }}
                     >
@@ -392,14 +345,8 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         onClick={handleInitialization}
-                        className="glass-panel glow-border-red font-orbitron"
+                        className="glass-panel glow-border-red font-orbitron btn-step1"
                         style={{
-                            marginTop: '1.5rem',
-                            width: '100%',
-                            padding: '1.2rem',
-                            color: 'white',
-                            fontSize: '1.1rem',
-                            cursor: 'pointer',
                             border: '1px solid var(--nebula-red)'
                         }}
                     >
@@ -407,28 +354,28 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                     </motion.button>
                 ) : (
                     isChecking && (
-                        <div className="flex-column" style={{ marginTop: '1.5rem', gap: '0.4rem' }}>
-                            <div className="font-orbitron" style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.4rem', letterSpacing: '0.1rem' }}>{t.checkTitle}</div>
+                        <div className="flex-column check-container">
+                            <div className="font-orbitron check-header">{t.checkTitle}</div>
 
-                            <div className="flex-center" style={{ justifyContent: 'space-between', padding: '0.6rem 1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <span style={{ fontSize: '0.85rem' }}>{t.checkGps}</span>
-                                <span className="font-orbitron" style={{ color: getStatusColor(gpsStatus), fontSize: '0.9rem' }}>
+                            <div className="check-row">
+                                <span className="text-085rem">{t.checkGps}</span>
+                                <span className={`font-orbitron text-09rem ${gpsStatus === 'checking' ? 'text-yellow' : gpsStatus === 'success' ? 'text-cyan' : 'text-nebula-red'}`}>
                                     {gpsStatus === 'checking' ? t.checking : gpsStatus === 'success' ? 'VALIDATED' : 'FAILURE'}
                                 </span>
                             </div>
 
-                            <div className="flex-center" style={{ justifyContent: 'space-between', padding: '0.6rem 1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <span style={{ fontSize: '0.85rem' }}>{t.checkSensor}</span>
-                                <span className="font-orbitron" style={{ color: getStatusColor(sensorStatus), fontSize: '0.9rem' }}>
+                            <div className="check-row">
+                                <span className="text-085rem">{t.checkSensor}</span>
+                                <span className={`font-orbitron text-09rem ${sensorStatus === 'calibrating' || sensorStatus === 'checking' ? 'text-yellow' : sensorStatus === 'success' ? 'text-cyan' : 'text-nebula-red'}`}>
                                     {sensorStatus === 'calibrating' ? `${t.calibrating} [${calibrationProgress}%]` : sensorStatus === 'success' ? 'VALIDATED' : 'FAILURE'}
                                 </span>
                             </div>
 
                             {/* Diagnostic Raw Data Panel */}
                             <div className="diagnostic-overlay">
-                                <div className="flex-center" style={{ justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                                    <div className="font-orbitron" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.6rem' }}>{t.rawData}</div>
-                                    <div className="font-orbitron" style={{ color: rawData.isStable ? 'cyan' : 'yellow', fontSize: '0.6rem' }}>
+                                <div className="flex-between margin-bottom-1">
+                                    <div className="font-orbitron text-06rem text-opacity-40">{t.rawData}</div>
+                                    <div className={`font-orbitron text-06rem ${rawData.isStable ? 'text-cyan' : 'text-yellow'}`}>
                                         STATUS: {rawData.isStable ? t.stable : t.jittery}
                                     </div>
                                 </div>
@@ -438,9 +385,9 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                                     <div className="diagnostic-item"><span>{t.gamma}</span><span className="diagnostic-value">{rawData.gamma.toFixed(1)}°</span></div>
                                     <div className="diagnostic-item"><span>FILTER</span><span className="diagnostic-value">{(smoothingFactor * 100).toFixed(0)}%</span></div>
                                 </div>
-                                <div style={{ marginTop: '0.4rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.3rem' }}>
-                                    <span style={{ opacity: 0.5 }}>{t.calcMode}: </span>
-                                    <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.65rem' }}>{activeEvent.toUpperCase()} / CALC: {(rawData.displayRotation - manualOffset).toFixed(1)}°</span>
+                                <div className="margin-top-1 border-top-dim pt-1">
+                                    <span className="opacity-50">{t.calcMode}: </span>
+                                    <span className="text-white-dim text-065rem">{activeEvent.toUpperCase()} / CALC: {(rawData.displayRotation - manualOffset).toFixed(1)}°</span>
                                 </div>
                             </div>
 
@@ -449,24 +396,14 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                                 <motion.div
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="flex-column"
-                                    style={{ gap: '0.5rem', marginTop: '0.5rem' }}
+                                    className="flex-column manual-cal-group"
                                 >
-                                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', fontStyle: 'italic' }}>
+                                    <div className="text-white-dim text-opacity-60 italic-text text-075rem">
                                         * {t.manualCalibration}
                                     </div>
                                     <button
                                         onClick={handleSetNorth}
-                                        className="glass-panel"
-                                        style={{
-                                            padding: '0.8rem',
-                                            fontSize: '0.9rem',
-                                            color: 'cyan',
-                                            border: '1px solid rgba(0, 255, 255, 0.3)',
-                                            background: 'rgba(0, 255, 255, 0.05)',
-                                            width: '100%',
-                                            cursor: 'pointer'
-                                        }}
+                                        className="glass-panel manual-cal-btn"
                                     >
                                         {t.btnSetNorth}
                                     </button>
@@ -483,15 +420,9 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={onComplete}
-                        className="glass-panel glow-border-red font-orbitron"
+                        className="glass-panel glow-border-red font-orbitron btn-step1 bg-nebula-red-dim"
                         style={{
-                            marginTop: '2rem',
-                            width: '100%',
-                            padding: '1.2rem',
-                            color: 'white',
                             fontSize: '1.2rem',
-                            cursor: 'pointer',
-                            background: 'rgba(255, 0, 0, 0.1)',
                             border: '1px solid var(--nebula-red)'
                         }}
                     >
@@ -505,8 +436,7 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="glow-text-red font-orbitron blink-text"
-                        style={{ letterSpacing: '0.3rem', fontSize: '1.1rem' }}
+                        className="glow-text-red font-orbitron blink-text footer-text"
                     >
                         {t.footer}
                     </motion.div>
@@ -517,14 +447,13 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="glass-panel guidance-card"
-                    style={{ marginTop: '2rem' }}
+                    className="glass-panel guidance-card margin-top-4"
                 >
-                    <div className="flex-center" style={{ justifyContent: 'flex-start', gap: '0.8rem', marginBottom: '0.5rem' }}>
+                    <div className="flex-center margin-bottom-1" style={{ justifyContent: 'flex-start', gap: '0.8rem' }}>
                         <Target size={18} color="var(--nebula-red)" />
-                        <span className="font-orbitron text-nebula-red" style={{ fontSize: '0.75rem', letterSpacing: '0.1rem' }}>MISSION GUIDANCE</span>
+                        <span className="font-orbitron text-nebula-red guidance-mission-header">MISSION GUIDANCE</span>
                     </div>
-                    <p className="text-white-dim" style={{ fontSize: '0.9rem', lineHeight: '1.4', textAlign: 'left' }}>
+                    <p className="text-white-dim text-09rem line-height-14 text-left">
                         {t.detail}
                     </p>
                 </motion.div>

@@ -38,24 +38,13 @@ const Step4_AlignmentPulse: React.FC<Step4_Props> = ({ onComplete, t }) => {
                 className="glass-panel responsive-padding step-container"
             >
                 <h2 className="glow-text-red font-orbitron responsive-h2">{t.title}</h2>
-                <p className="text-white-dim" style={{ marginBottom: '3rem' }}>{t.subtitle}</p>
+                <p className="text-white-dim step-subtitle">{t.subtitle}</p>
 
                 {/* Dual Pulse Gauge */}
-                <div className="pulse-gauge-container" style={{
-                    position: 'relative',
-                    height: '340px',
-                    width: '100%',
-                    background: 'rgba(0,0,0,0.7)',
-                    borderRadius: '8px',
-                    border: '1px solid var(--glass-border)',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    overflow: 'hidden'
-                }}>
+                <div className="pulse-gauge-container">
                     {/* Fixed Reference Grid / Circles */}
-                    <div className="absolute-center" style={{ width: '200px', height: '200px', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '50%' }} />
-                    <div className="absolute-center" style={{ width: '100px', height: '100px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%' }} />
+                    <div className="absolute-center ref-circle-lg" />
+                    <div className="absolute-center ref-circle-sm" />
 
                     {/* True NCP Target Circle (0.7° Offset Area) */}
                     <motion.div
@@ -74,7 +63,7 @@ const Step4_AlignmentPulse: React.FC<Step4_Props> = ({ onComplete, t }) => {
                             zIndex: 1
                         }}
                     />
-                    <span className="font-orbitron" style={{ position: 'absolute', left: `${targetOffset.x + 4}%`, top: `${targetOffset.y - 4}%`, fontSize: '0.6rem', color: isAligned ? 'cyan' : 'var(--nebula-red)' }}>NCP ({ALIGNMENT_CONFIG.NCP_OFFSET_DEG}°)</span>
+                    <span className={`font-orbitron ncp-label ${isAligned ? 'text-cyan' : 'text-nebula-red'}`} style={{ left: `${targetOffset.x + 4}%`, top: `${targetOffset.y - 4}%` }}>NCP ({ALIGNMENT_CONFIG.NCP_OFFSET_DEG}°)</span>
 
                     {/* Horizontal Light Pillar (Altitude Axis) */}
                     <motion.div
@@ -118,10 +107,10 @@ const Step4_AlignmentPulse: React.FC<Step4_Props> = ({ onComplete, t }) => {
                         }}
                     >
                         {/* Polaris Dot */}
-                        <div className="absolute-center" style={{ left: '18px', top: '18px', width: '4px', height: '4px', background: 'white', borderRadius: '50%', boxShadow: '0 0 10px white' }} />
+                        <div className="absolute-center polaris-dot" style={{ left: '18px', top: '18px' }} />
                         {/* Precision Crosshair Lines */}
-                        <div style={{ position: 'absolute', left: '20px', top: '0', bottom: '0', width: '1px', background: 'rgba(255,255,255,0.4)' }} />
-                        <div style={{ position: 'absolute', top: '20px', left: '0', right: '0', height: '1px', background: 'rgba(255,255,255,0.4)' }} />
+                        <div className="crosshair-v" style={{ left: '20px' }} />
+                        <div className="crosshair-h" style={{ top: '20px' }} />
                     </motion.div>
 
                     {/* Intersection Flare */}
@@ -130,32 +119,22 @@ const Step4_AlignmentPulse: React.FC<Step4_Props> = ({ onComplete, t }) => {
                             initial={{ scale: 0, opacity: 0 }}
                             animate={{ scale: [0, 4, 3], opacity: [0, 1, 0.8] }}
                             transition={{ duration: 0.5, repeat: Infinity, repeatType: 'reverse' }}
-                            className="absolute-center"
+                            className="intersection-flare absolute-center"
                             style={{
                                 left: `${hPos}%`,
-                                top: `${vPos}%`,
-                                width: '50px',
-                                height: '50px',
-                                background: 'radial-gradient(circle, white 0%, transparent 70%)',
-                                zIndex: 3,
-                                filter: 'blur(5px)'
+                                top: `${vPos}%`
                             }}
                         />
                     )}
                 </div>
 
                 {/* AI Coaching */}
-                <div style={{ marginTop: '2rem' }}>
+                <div className="alignment-coaching">
                     <motion.div
                         key={isAligned ? 'aligned' : 'tuning'}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="font-orbitron"
-                        style={{
-                            fontSize: '1.1rem',
-                            color: isAligned ? 'cyan' : 'white',
-                            fontWeight: 'bold'
-                        }}
+                        className={`font-orbitron coaching-text ${isAligned ? 'text-cyan' : ''}`}
                     >
                         {isAligned ? t.coachingAligned : t.coachingTuning}
                     </motion.div>
@@ -165,43 +144,59 @@ const Step4_AlignmentPulse: React.FC<Step4_Props> = ({ onComplete, t }) => {
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="glass-panel guidance-card"
-                            style={{
-                                marginTop: '1.2rem',
-                                borderLeft: '4px solid var(--nebula-red)',
-                                background: 'rgba(255, 0, 0, 0.05)',
-                                textAlign: 'left'
-                            }}
+                            className="glass-panel guidance-card guidance-card-step4"
                         >
-                            <span className="font-orbitron" style={{ fontSize: '0.7rem', color: 'var(--nebula-red)', display: 'block', marginBottom: '0.3rem' }}>PULSE STABILIZATION</span>
-                            <p className="text-white-dim" style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>
+                            <span className="font-orbitron guidance-header">PULSE STABILIZATION</span>
+                            <p className="text-white-dim guidance-detail">
                                 {t.detail}
                             </p>
                         </motion.div>
                     )}
 
                     {/* Precise Control Sliders */}
-                    <div className="flex-column" style={{ marginTop: '2rem', gap: '1.5rem' }}>
+                    <div className="flex-column slider-section">
                         <div style={{ width: '100%' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                <span className="font-orbitron" style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)' }}>{t.azimuth}</span>
-                                <span className="font-orbitron" style={{ fontSize: '0.7rem', color: 'var(--nebula-red)' }}>{hPos.toFixed(1)}%</span>
+                                <span className="font-orbitron slider-label-text">{t.azimuth}</span>
+                                <span className="font-orbitron slider-value-text">{hPos.toFixed(1)}%</span>
                             </div>
                             <div className="flex-center" style={{ gap: '1rem' }}>
-                                <span className="text-white-dim" style={{ fontSize: '0.6rem', minWidth: '30px' }}>{t.left}</span>
-                                <input type="range" value={hPos} min="0" max="100" step="0.1" onChange={(e) => setHPos(Number(e.target.value))} style={{ flex: 1, accentColor: 'var(--nebula-red)' }} />
-                                <span className="text-white-dim" style={{ fontSize: '0.6rem', minWidth: '30px' }}>{t.right}</span>
+                                <span className="text-white-dim slider-minmax-text">{t.left}</span>
+                                <input
+                                    type="range"
+                                    value={hPos}
+                                    min="0"
+                                    max="100"
+                                    step="0.1"
+                                    title={t.azimuth}
+                                    placeholder={t.azimuth}
+                                    onChange={(e) => setHPos(Number(e.target.value))}
+                                    className="custom-range"
+                                    style={{ flex: 1 }}
+                                />
+                                <span className="text-white-dim slider-minmax-text">{t.right}</span>
                             </div>
                         </div>
                         <div style={{ width: '100%' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                <span className="font-orbitron" style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)' }}>{t.altitude}</span>
-                                <span className="font-orbitron" style={{ fontSize: '0.7rem', color: 'var(--nebula-red)' }}>{vPos.toFixed(1)}%</span>
+                                <span className="font-orbitron slider-label-text">{t.altitude}</span>
+                                <span className="font-orbitron slider-value-text">{vPos.toFixed(1)}%</span>
                             </div>
                             <div className="flex-center" style={{ gap: '1rem' }}>
-                                <span className="text-white-dim" style={{ fontSize: '0.6rem', minWidth: '30px' }}>{t.down}</span>
-                                <input type="range" value={vPos} min="0" max="100" step="0.1" onChange={(e) => setVPos(Number(e.target.value))} style={{ flex: 1, accentColor: 'var(--nebula-red)' }} />
-                                <span className="text-white-dim" style={{ fontSize: '0.6rem', minWidth: '30px' }}>{t.up}</span>
+                                <span className="text-white-dim slider-minmax-text">{t.down}</span>
+                                <input
+                                    type="range"
+                                    value={vPos}
+                                    min="0"
+                                    max="100"
+                                    step="0.1"
+                                    title={t.altitude}
+                                    placeholder={t.altitude}
+                                    onChange={(e) => setVPos(Number(e.target.value))}
+                                    className="custom-range"
+                                    style={{ flex: 1 }}
+                                />
+                                <span className="text-white-dim slider-minmax-text">{t.up}</span>
                             </div>
                         </div>
                     </div>
@@ -211,17 +206,7 @@ const Step4_AlignmentPulse: React.FC<Step4_Props> = ({ onComplete, t }) => {
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             onClick={onComplete}
-                            className="glass-panel font-orbitron"
-                            style={{
-                                marginTop: '2rem',
-                                padding: '1.2rem 3rem',
-                                background: 'var(--nebula-red)',
-                                color: 'white',
-                                fontSize: '1.3rem',
-                                cursor: 'pointer',
-                                border: 'none',
-                                boxShadow: '0 0 20px var(--nebula-red)'
-                            }}
+                            className="glass-panel font-orbitron btn-alignment-complete"
                         >
                             {t.button}
                         </motion.button>
