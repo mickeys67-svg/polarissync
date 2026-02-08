@@ -35,6 +35,8 @@ interface Step1_Props {
         calibrating: string;
         stable: string;
         jittery: string;
+        btnSetNorth: string;
+        manualCalibration: string;
     };
 }
 
@@ -59,6 +61,8 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
         displayRotation: 0,
         isStable: false
     });
+
+    const [manualOffset, setManualOffset] = useState(0);
 
     // Refs for filtering and stability
     const lastRotation = useRef<number>(0);
@@ -188,7 +192,7 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
             window.addEventListener('deviceorientation', handleOrientation, true);
 
             setTimeout(() => {
-                if (samplesGathered < 5) { // Only set error if not enough samples
+                if (samplesGathered < 5) {
                     setSensorStatus('error');
                 }
             }, 12000);
@@ -206,6 +210,12 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
             console.error(err);
             setSensorStatus('error');
         }
+    };
+
+    const handleSetNorth = () => {
+        // Calculate offset so current alpha becomes 0 (North)
+        setManualOffset(rawData.alpha);
+        setSensorStatus('success');
     };
 
     useEffect(() => {
@@ -226,7 +236,7 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
     };
 
     return (
-        <div className="responsive-wrapper">
+        <div className="responsive-wrapper" style={{ overscrollBehavior: 'none' }}>
             {/* Aurora Effect */}
             {isSynced && (
                 <motion.div
@@ -266,7 +276,7 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                     {(isChecking || isSynced) && (
                         <motion.div
                             animate={{
-                                rotate: rawData.displayRotation,
+                                rotate: rawData.displayRotation - manualOffset,
                                 scale: isSynced ? 1 : 1.1,
                                 opacity: isSynced ? 1 : 0.4
                             }}
@@ -287,13 +297,29 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                                 position: 'absolute'
                             }}
                         >
-                            <div className="font-orbitron" style={{
-                                color: isSynced ? 'cyan' : 'var(--nebula-red)',
-                                fontSize: '1.2rem',
-                                fontWeight: 'bold',
-                                textShadow: isSynced ? '0 0 10px cyan' : 'none'
-                            }}>
-                                N
+                            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                {/* Bolder Red Arrow ABOVE N */}
+                                <svg
+                                    width="20"
+                                    height="12"
+                                    viewBox="0 0 20 12"
+                                    style={{
+                                        marginBottom: '0px',
+                                        filter: 'drop-shadow(0 0 8px var(--nebula-red))',
+                                        zIndex: 10
+                                    }}
+                                >
+                                    <path d="M10 0L20 12H0L10 0Z" fill="#FF0000" />
+                                </svg>
+                                <div className="font-orbitron" style={{
+                                    color: isSynced ? 'cyan' : '#FF0000',
+                                    fontSize: '1.3rem',
+                                    fontWeight: '900',
+                                    textShadow: isSynced ? '0 0 15px cyan' : '0 0 10px rgba(255,0,0,0.8)',
+                                    marginTop: '-2px'
+                                }}>
+                                    N
+                                </div>
                             </div>
                         </motion.div>
                     )}
@@ -303,6 +329,29 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                         transition={{ repeat: Infinity, duration: 4 }}
                         style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
+                        {/* Semi-transparent Telescope Silhouette BELOW smartphone */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: isSynced ? 0.35 : 0.3 }}
+                            style={{
+                                position: 'absolute',
+                                width: '150px',
+                                height: '180px',
+                                top: '80%', // Move down
+                                left: '50%',
+                                transform: 'translate(-50%, -20%)',
+                                zIndex: -1
+                            }}
+                        >
+                            <svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.2))' }}>
+                                {/* Telescope pointing UP towards "POLARISSYNC" */}
+                                <path d="M45 5 L55 5 L60 80 L40 80 Z" fill="white" fillOpacity="0.7" />
+                                <path d="M35 80 L65 80 L72 115 L28 115 Z" fill="white" fillOpacity="0.5" />
+                                <circle cx="50" cy="2" r="4" fill="white" />
+                                <rect x="30" y="115" width="40" height="4" rx="2" fill="white" fillOpacity="0.8" />
+                            </svg>
+                        </motion.div>
+
                         <Smartphone size={70} color={isSynced ? "var(--nebula-red)" : "rgba(255,255,255,0.2)"} className={isSynced ? "neon-svg" : ""} />
 
                         {isSynced && (
@@ -391,9 +440,38 @@ const Step1_Docking: React.FC<Step1_Props> = ({ onComplete, title, slogan, t }) 
                                 </div>
                                 <div style={{ marginTop: '0.4rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.3rem' }}>
                                     <span style={{ opacity: 0.5 }}>{t.calcMode}: </span>
-                                    <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.65rem' }}>{activeEvent.toUpperCase()} / CALC: {rawData.displayRotation.toFixed(1)}°</span>
+                                    <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.65rem' }}>{activeEvent.toUpperCase()} / CALC: {(rawData.displayRotation - manualOffset).toFixed(1)}°</span>
                                 </div>
                             </div>
+
+                            {/* Manual Calibration Button */}
+                            {sensorStatus === 'calibrating' && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="flex-column"
+                                    style={{ gap: '0.5rem', marginTop: '0.5rem' }}
+                                >
+                                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', fontStyle: 'italic' }}>
+                                        * {t.manualCalibration}
+                                    </div>
+                                    <button
+                                        onClick={handleSetNorth}
+                                        className="glass-panel"
+                                        style={{
+                                            padding: '0.8rem',
+                                            fontSize: '0.9rem',
+                                            color: 'cyan',
+                                            border: '1px solid rgba(0, 255, 255, 0.3)',
+                                            background: 'rgba(0, 255, 255, 0.05)',
+                                            width: '100%',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        {t.btnSetNorth}
+                                    </button>
+                                </motion.div>
+                            )}
                         </div>
                     )
                 )}

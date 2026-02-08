@@ -32,6 +32,8 @@ export interface Translations {
         calibrating: string;
         stable: string;
         jittery: string;
+        btnSetNorth: string;
+        manualCalibration: string;
     };
     step2: {
         title: string;
@@ -107,7 +109,9 @@ export const translations: Record<Language, Translations> = {
             calcMode: "ALIGNMENT LOGIC",
             calibrating: "CALIBRATING",
             stable: "STABLE",
-            jittery: "JITTERY"
+            jittery: "JITTERY",
+            btnSetNorth: "CALIBRATE NORTH",
+            manualCalibration: "MANUAL CALIBRATION"
         },
         step2: {
             title: "ORBIT DANCE",
@@ -181,7 +185,9 @@ export const translations: Record<Language, Translations> = {
             calcMode: "회전 보정 로직",
             calibrating: "캘리브레이션 중",
             stable: "안정됨",
-            jittery: "불안정함"
+            jittery: "불안정함",
+            btnSetNorth: "현재 방향을 북쪽으로 설정",
+            manualCalibration: "수동 캘리브레이션"
         },
         step2: {
             title: "스윙 캘리브레이션",
