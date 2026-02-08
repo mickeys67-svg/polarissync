@@ -1,26 +1,40 @@
-import { useState } from 'react';
-import type { Language } from '../translations';
+import { useState, useCallback } from 'react';
 
-export const useMissionState = () => {
-    const [currentStep, setCurrentStep] = useState(1);
+export const useMissionState = (totalSteps = 2) => {
+    const [currentStep, setCurrentStep] = useState(0);
     const [isFinished, setIsFinished] = useState(false);
-    const [lang, setLang] = useState<Language>('ko');
+    const [error, setError] = useState<string | null>(null);
 
-    const nextStep = () => setCurrentStep(prev => prev + 1);
-    const finishMission = () => setIsFinished(true);
-    const toggleLang = () => setLang(prev => (prev === 'en' ? 'ko' : 'en'));
-    const resetMission = () => {
-        setCurrentStep(1);
+    const nextStep = useCallback(() => {
+        if (currentStep < totalSteps - 1) {
+            setCurrentStep(prev => prev + 1);
+        }
+    }, [currentStep, totalSteps]);
+
+    const prevStep = useCallback(() => {
+        if (currentStep > 0) {
+            setCurrentStep(prev => prev - 1);
+        }
+    }, [currentStep]);
+
+    const finishMission = useCallback(() => {
+        setIsFinished(true);
+    }, []);
+
+    const resetMission = useCallback(() => {
+        setCurrentStep(0);
         setIsFinished(false);
-    };
+        setError(null);
+    }, []);
 
     return {
         currentStep,
-        isFinished,
-        lang,
         nextStep,
+        prevStep,
+        isFinished,
         finishMission,
-        toggleLang,
-        resetMission
+        resetMission,
+        error,
+        setError
     };
 };

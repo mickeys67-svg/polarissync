@@ -1,8 +1,10 @@
 export const STEPS = {
-    DOCKING: 0,
-    ORBIT_DANCE: 1,
-    EVENT_HORIZON: 2,
-    ALIGNMENT_PULSE: 3,
+    PERMISSIONS: 0,
+    DOCKING: 1,
+    TELEMETRY: 2,
+    ORBIT_DANCE: 3,
+    EVENT_HORIZON: 4,
+    ALIGNMENT_PULSE: 5,
 };
 
 export const TRANSITION_DURATION = 1.5; // seconds

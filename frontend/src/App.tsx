@@ -1,68 +1,41 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import PermissionPage from './pages/mission/PermissionPage';
+import SensorCheckPage from './pages/mission/SensorCheckPage';
+import OrbitDancePage from './pages/mission/OrbitDancePage';
+import SuccessPage from './pages/mission/SuccessPage';
 import CelestialBackground from './components/CelestialBackground';
-import FullScreenLayout from './components/layout/FullScreenLayout';
-import Step1_Docking from './components/steps/Step1_Docking';
-import Step2_OrbitDance from './components/steps/Step2_OrbitDance';
-import Step3_EventHorizon from './components/steps/Step3_EventHorizon';
-import Step4_AlignmentPulse from './components/steps/Step4_AlignmentPulse';
-import { translations } from './translations';
-import type { Translations } from './translations';
 
-import { STEPS } from './constants';
-import { useMissionState } from './hooks/useMissionState';
-
-const App: React.FC = () => {
-  const { currentStep, isFinished, lang, nextStep, finishMission, toggleLang, resetMission } = useMissionState();
-
-  const t: Translations = translations[lang];
-
+const MissionFlow: React.FC = () => {
   return (
-    <div className="app-root">
-      {/* Background stays persistent */}
-      <CelestialBackground />
+    <Routes>
+      {/* 권한 요청 (Start Point) */}
+      <Route path="/" element={<PermissionPage />} />
 
-      {/* Language Toggle */}
-      <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={toggleLang}
-        className="glass-panel lang-toggle"
-      >
-        {lang === 'en' ? 'KR' : 'EN'}
-      </motion.button>
+      {/* 센서 체크 */}
+      <Route path="/sensor-check" element={<SensorCheckPage />} />
 
-      <FullScreenLayout>
-        {!isFinished && (
-          <>
-            {currentStep === STEPS.DOCKING + 1 && <Step1_Docking onComplete={nextStep} t={t.step1} title={t.title} slogan={t.slogan} />}
-            {currentStep === STEPS.ORBIT_DANCE + 1 && <Step2_OrbitDance onComplete={nextStep} t={t.step2} />}
-            {currentStep === STEPS.EVENT_HORIZON + 1 && <Step3_EventHorizon onComplete={nextStep} t={t.step3} />}
-            {currentStep === STEPS.ALIGNMENT_PULSE + 1 && <Step4_AlignmentPulse onComplete={finishMission} t={t.step4} />}
-          </>
-        )}
+      {/* 미션 (Orbit Dance) */}
+      <Route path="/mission" element={<OrbitDancePage />} />
 
-        {isFinished && (
-          <div className="screen-container">
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="glass-panel mission-success-container"
-            >
-              <h1 className="glow-text-red responsive-hero-title">{t.final.success}</h1>
-              <p className="font-orbitron margin-top-1rem">{t.final.message}</p>
-              <button
-                onClick={resetMission}
-                className="glass-panel font-orbitron reset-mission-btn"
-              >
-                {t.final.button}
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </FullScreenLayout>
-    </div>
+      {/* 결과 */}
+      <Route path="/result" element={<SuccessPage />} />
+
+      {/* 잘못된 경로는 홈으로 리다이렉트 */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 };
+
+function App() {
+  return (
+    <Router>
+      <div className="relative min-h-screen bg-black overflow-hidden font-inter">
+        <CelestialBackground />
+        <MissionFlow />
+      </div>
+    </Router>
+  );
+}
 
 export default App;

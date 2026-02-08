@@ -1,15 +1,24 @@
 {
+    "name": "PolarisSync - 망원경 극축 정렬",
     "short_name": "PolarisSync",
-    "name": "PolarisSync: Telescope Alignment",
+    "description": "스마트폰으로 망원경 극축을 정렬하세요",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#000000",
+    "orientation": "portrait",
     "icons": [
         {
-            "src": "/vite.svg",
-            "type": "image/svg+xml",
-            "sizes": "any"
+            "src": "/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
         }
-    ],
-    "start_url": ".",
-    "display": "standalone",
-    "theme_color": "#020205",
-    "background_color": "#020205"
+    ]
 }
