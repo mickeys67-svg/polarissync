@@ -722,3 +722,85 @@ h3,
 
 .line-height-14 { line-height: 1.4 !important; }
 .text-left { textAlign: left !important; }
+
+/* Step 4 Phase 2: Lint Resolution & Dynamic Positioning */
+:root {
+  --h-pos: 50%;
+  --v-pos: 50%;
+  --target-x: 53%;
+  --target-y: 47%;
+}
+
+.polaris-target-area {
+  left: var(--target-x);
+  top: var(--target-y);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.ncp-label-dynamic {
+  left: calc(var(--target-x) + 4%);
+  top: calc(var(--target-y) - 4%);
+}
+
+.pillar-h {
+  left: 0;
+  right: 0;
+  height: 2px;
+  top: var(--v-pos);
+  z-index: 2;
+  opacity: 0.6;
+}
+
+.pillar-v {
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  left: var(--h-pos);
+  z-index: 2;
+  opacity: 0.6;
+}
+
+.precision-crosshair-container {
+  left: var(--h-pos);
+  top: var(--v-pos);
+  width: 40px;
+  height: 40px;
+  z-index: 5;
+}
+
+.polaris-dot-pos {
+  left: 18px;
+  top: 18px;
+}
+
+.crosshair-v-pos {
+  left: 20px;
+}
+
+.crosshair-h-pos {
+  top: 20px;
+}
+
+.flare-pos {
+  left: var(--h-pos);
+  top: var(--v-pos);
+}
+
+.slider-group {
+  width: 100%;
+}
+
+.gap-1rem {
+  gap: 1rem !important;
+}
+
+.flex-1 {
+  flex: 1 !important;
+}
+
+.margin-bottom-05rem {
+  margin-bottom: 0.5rem !important;
+}

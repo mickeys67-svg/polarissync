@@ -51,66 +51,41 @@ const Step4_AlignmentPulse: React.FC<Step4_Props> = ({ onComplete, t }) => {
                         initial={{ opacity: 0.3 }}
                         animate={{ opacity: isAligned ? 1 : 0.5, scale: isAligned ? [1, 1.1, 1] : 1 }}
                         transition={{ repeat: Infinity, duration: 2 }}
-                        className="absolute-center"
+                        className={`absolute-center polaris-target-area ${isAligned ? 'text-cyan' : 'text-nebula-red'}`}
                         style={{
-                            left: `${targetOffset.x}%`,
-                            top: `${targetOffset.y}%`,
-                            width: '30px',
-                            height: '30px',
                             border: `2px solid ${isAligned ? 'cyan' : 'var(--nebula-red)'}`,
-                            borderRadius: '50%',
-                            boxShadow: `0 0 10px ${isAligned ? 'cyan' : 'var(--nebula-red)'}`,
-                            zIndex: 1
+                            boxShadow: `0 0 10px ${isAligned ? 'cyan' : 'var(--nebula-red)'}`
                         }}
                     />
-                    <span className={`font-orbitron ncp-label ${isAligned ? 'text-cyan' : 'text-nebula-red'}`} style={{ left: `${targetOffset.x + 4}%`, top: `${targetOffset.y - 4}%` }}>NCP ({ALIGNMENT_CONFIG.NCP_OFFSET_DEG}°)</span>
+                    <span className={`font-orbitron ncp-label ncp-label-dynamic ${isAligned ? 'text-cyan' : 'text-nebula-red'}`}>
+                        NCP ({ALIGNMENT_CONFIG.NCP_OFFSET_DEG}°)
+                    </span>
 
                     {/* Horizontal Light Pillar (Altitude Axis) */}
                     <motion.div
-                        className="absolute-center"
+                        className="absolute-center pillar-h"
                         style={{
-                            left: 0,
-                            right: 0,
-                            height: '2px',
                             background: `linear-gradient(90deg, transparent, ${isAligned ? 'cyan' : 'var(--nebula-red)'}, transparent)`,
-                            top: `${vPos}%`,
-                            boxShadow: `0 0 8px ${isAligned ? 'cyan' : 'var(--nebula-red)'}`,
-                            zIndex: 2,
-                            opacity: 0.6
-                        }}
+                            boxShadow: `0 0 8px ${isAligned ? 'cyan' : 'var(--nebula-red)'}`
+                        } as React.CSSProperties}
                     />
 
                     {/* Vertical Light Pillar (Azimuth Axis) */}
                     <motion.div
-                        className="absolute-center"
+                        className="absolute-center pillar-v"
                         style={{
-                            top: 0,
-                            bottom: 0,
-                            width: '2px',
                             background: `linear-gradient(0deg, transparent, ${isAligned ? 'cyan' : 'var(--nebula-red)'}, transparent)`,
-                            left: `${hPos}%`,
-                            boxShadow: `0 0 8px ${isAligned ? 'cyan' : 'var(--nebula-red)'}`,
-                            zIndex: 2,
-                            opacity: 0.6
-                        }}
+                            boxShadow: `0 0 8px ${isAligned ? 'cyan' : 'var(--nebula-red)'}`
+                        } as React.CSSProperties}
                     />
 
                     {/* Precision Crosshair (Polaris Center) */}
-                    <motion.div
-                        className="absolute-center"
-                        style={{
-                            left: `${hPos}%`,
-                            top: `${vPos}%`,
-                            width: '40px',
-                            height: '40px',
-                            zIndex: 5
-                        }}
-                    >
+                    <motion.div className="absolute-center precision-crosshair-container">
                         {/* Polaris Dot */}
-                        <div className="absolute-center polaris-dot" style={{ left: '18px', top: '18px' }} />
+                        <div className="absolute-center polaris-dot polaris-dot-pos" />
                         {/* Precision Crosshair Lines */}
-                        <div className="crosshair-v" style={{ left: '20px' }} />
-                        <div className="crosshair-h" style={{ top: '20px' }} />
+                        <div className="crosshair-v crosshair-v-pos" />
+                        <div className="crosshair-h crosshair-h-pos" />
                     </motion.div>
 
                     {/* Intersection Flare */}
@@ -119,11 +94,7 @@ const Step4_AlignmentPulse: React.FC<Step4_Props> = ({ onComplete, t }) => {
                             initial={{ scale: 0, opacity: 0 }}
                             animate={{ scale: [0, 4, 3], opacity: [0, 1, 0.8] }}
                             transition={{ duration: 0.5, repeat: Infinity, repeatType: 'reverse' }}
-                            className="intersection-flare absolute-center"
-                            style={{
-                                left: `${hPos}%`,
-                                top: `${vPos}%`
-                            }}
+                            className="intersection-flare absolute-center flare-pos"
                         />
                     )}
                 </div>
@@ -154,13 +125,19 @@ const Step4_AlignmentPulse: React.FC<Step4_Props> = ({ onComplete, t }) => {
                     )}
 
                     {/* Precise Control Sliders */}
-                    <div className="flex-column slider-section">
-                        <div style={{ width: '100%' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <div
+                        className="flex-column slider-section"
+                        style={{
+                            '--h-pos': `${hPos}%`,
+                            '--v-pos': `${vPos}%`
+                        } as React.CSSProperties}
+                    >
+                        <div className="slider-group">
+                            <div className="flex-between margin-bottom-05rem">
                                 <span className="font-orbitron slider-label-text">{t.azimuth}</span>
                                 <span className="font-orbitron slider-value-text">{hPos.toFixed(1)}%</span>
                             </div>
-                            <div className="flex-center" style={{ gap: '1rem' }}>
+                            <div className="flex-center gap-1rem">
                                 <span className="text-white-dim slider-minmax-text">{t.left}</span>
                                 <input
                                     type="range"
@@ -171,18 +148,17 @@ const Step4_AlignmentPulse: React.FC<Step4_Props> = ({ onComplete, t }) => {
                                     title={t.azimuth}
                                     placeholder={t.azimuth}
                                     onChange={(e) => setHPos(Number(e.target.value))}
-                                    className="custom-range"
-                                    style={{ flex: 1 }}
+                                    className="custom-range flex-1"
                                 />
                                 <span className="text-white-dim slider-minmax-text">{t.right}</span>
                             </div>
                         </div>
-                        <div style={{ width: '100%' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <div className="slider-group">
+                            <div className="flex-between margin-bottom-05rem">
                                 <span className="font-orbitron slider-label-text">{t.altitude}</span>
                                 <span className="font-orbitron slider-value-text">{vPos.toFixed(1)}%</span>
                             </div>
-                            <div className="flex-center" style={{ gap: '1rem' }}>
+                            <div className="flex-center gap-1rem">
                                 <span className="text-white-dim slider-minmax-text">{t.down}</span>
                                 <input
                                     type="range"
@@ -193,8 +169,7 @@ const Step4_AlignmentPulse: React.FC<Step4_Props> = ({ onComplete, t }) => {
                                     title={t.altitude}
                                     placeholder={t.altitude}
                                     onChange={(e) => setVPos(Number(e.target.value))}
-                                    className="custom-range"
-                                    style={{ flex: 1 }}
+                                    className="custom-range flex-1"
                                 />
                                 <span className="text-white-dim slider-minmax-text">{t.up}</span>
                             </div>
