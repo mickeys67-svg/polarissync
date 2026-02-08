@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Target } from 'lucide-react';
 
@@ -42,16 +42,14 @@ const Step3_EventHorizon: React.FC<Step3_Props> = ({ onComplete, t }) => {
         <div className="responsive-wrapper">
             <motion.div
                 onMouseMove={handleMouseMove}
-                className="glass-panel step-container"
-                style={{
-                    height: '500px',
-                    cursor: 'none',
-                    border: `1px solid rgba(255, 0, 0, ${0.1 + gravityEffect * 0.5})`
+                animate={{
+                    borderColor: `rgba(255, 0, 0, ${0.1 + gravityEffect * 0.5})`
                 }}
+                className="glass-panel step-container event-horizon-visual"
             >
                 <div className="responsive-padding">
                     <h2 className="glow-text-red responsive-h2">{t.title}</h2>
-                    <p className="text-white-dim" style={{ fontSize: '0.8rem' }}>{t.subtitle}</p>
+                    <p className="text-white-dim text-08rem">{t.subtitle}</p>
                 </div>
 
                 {/* Gravity Field Visualizer */}
@@ -60,68 +58,43 @@ const Step3_EventHorizon: React.FC<Step3_Props> = ({ onComplete, t }) => {
                     <motion.div
                         animate={{ scale: [1, 2], opacity: [0.5, 0] }}
                         transition={{ repeat: Infinity, duration: 2 / Math.max(0.1, gravityEffect * 5) }}
-                        className="absolute-center"
-                        style={{
-                            width: '100px',
-                            height: '100px',
-                            border: '2px solid var(--nebula-red)',
-                            borderRadius: '50%',
-                            background: 'rgba(255,0,0,0.05)'
-                        }}
+                        className="absolute-center grav-ripple"
                     />
 
                     {/* The Glowing Sun (Target) */}
-                    <div style={{
-                        width: '20px',
-                        height: '20px',
-                        background: 'var(--nebula-red)',
-                        borderRadius: '50%',
-                        boxShadow: `0 0 ${20 + gravityEffect * 40}px var(--nebula-red)`
-                    }} />
+                    <motion.div
+                        className="target-sun"
+                        animate={{
+                            boxShadow: `0 0 ${20 + gravityEffect * 40}px #FF0000`
+                        }}
+                    />
                 </div>
 
                 {/* Space Probe Pointer */}
                 <motion.div
                     animate={{ x: probePos.x, y: probePos.y }}
                     transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-                    style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        width: '30px',
-                        height: '30px',
-                        marginLeft: '-15px',
-                        marginTop: '-15px',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        color: 'white',
-                        filter: 'drop-shadow(0 0 5px white)'
-                    }}
+                    className="probe-pointer"
                 >
-                    <Send size={24} style={{ transform: 'rotate(-45deg)' }} />
+                    <Send size={24} className="rotate-minus-45" />
                 </motion.div>
 
                 {isLocked && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="absolute-center full-size flex-column flex-center glass-panel"
-                        style={{
-                            background: 'rgba(255,0,0,0.2)',
-                            backdropFilter: 'blur(10px)'
-                        }}
+                        className="absolute-center full-size flex-column flex-center glass-panel bg-nebula-red-dim-2 blur-10px"
                     >
                         <Target size={60} color="white" className="neon-svg" />
-                        <h1 className="glow-text-red" style={{ marginTop: '1rem' }}>{t.successTitle}</h1>
-                        <div className="font-orbitron" style={{ fontSize: '0.8rem' }}>{t.successSubtitle}</div>
+                        <h1 className="glow-text-red margin-top-1rem">{t.successTitle}</h1>
+                        <div className="font-orbitron text-08rem">{t.successSubtitle}</div>
                     </motion.div>
                 )}
 
             </motion.div>
 
-            <div style={{ marginTop: '1.5rem', textAlign: 'center', width: '90%', maxWidth: '600px' }}>
-                <p className="font-orbitron" style={{ fontSize: '0.9rem', color: isLocked ? 'white' : 'var(--nebula-red)', marginBottom: '1rem' }}>
+            <div className="margin-top-1-5rem text-center full-width max-width-600 center-block">
+                <p className={`font-orbitron text-09rem margin-bottom-1 ${isLocked ? 'text-white' : 'text-nebula-red'}`}>
                     {isLocked ? t.instructionSuccess : t.instruction}
                 </p>
 
@@ -132,11 +105,11 @@ const Step3_EventHorizon: React.FC<Step3_Props> = ({ onComplete, t }) => {
                         animate={{ opacity: 1, scale: 1 }}
                         className="glass-panel guidance-card"
                     >
-                        <div className="flex-center" style={{ justifyContent: 'flex-start', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                        <div className="flex-center flex-start gap-05rem margin-bottom-03rem">
                             <Target size={16} color="var(--nebula-red)" />
-                            <span className="font-orbitron text-nebula-red" style={{ fontSize: '0.7rem' }}>TARGETING ASSIST</span>
+                            <span className="font-orbitron text-nebula-red text-07rem">TARGETING ASSIST</span>
                         </div>
-                        <p className="text-white-dim" style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
+                        <p className="text-white-dim text-085rem line-height-14">
                             {t.detail}
                         </p>
                     </motion.div>

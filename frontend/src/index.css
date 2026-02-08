@@ -24,15 +24,10 @@ body {
   background-color: var(--space-black);
   color: var(--starlight-white);
   font-family: var(--font-pretendard);
-  overflow: hidden;
-  width: 100vw;
-  height: 100vh;
-  overscroll-behavior-y: none;
+  width: 100%;
+  min-height: 100vh;
 }
 
-html {
-  overscroll-behavior-y: none;
-}
 
 h1,
 h2,
@@ -46,8 +41,8 @@ h3,
 /* Glassmorphism Utility */
 .glass-panel {
   background: var(--glass-bg);
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
@@ -72,17 +67,11 @@ h3,
 .screen-container {
   position: relative;
   width: 100%;
-  height: 100vh;
-  /* Fallback for browsers that don't support dvh */
-  height: 100dvh;
-  /* Use dynamic viewport height */
+  /* Use dynamic viewport height as a minimum to ensure footer visibility but allow scroll */
+  min-height: 100dvh;
   z-index: 10;
-  overflow-y: auto;
-  /* Enable vertical scrolling */
+  overflow-y: visible;
   overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  /* Smooth scrolling for iOS */
-  overscroll-behavior-y: none;
 }
 
 /* responsive-title: Fluid Typography using clamp() */
@@ -390,6 +379,7 @@ h3,
   overflow: hidden;
   margin: 0 auto;
 }
+
 /* Step 4: Alignment Pulse Styles */
 .pulse-gauge-container {
   position: relative;
@@ -525,18 +515,55 @@ h3,
 }
 
 /* Utility Classes */
-.text-nebula-red { color: var(--nebula-red) !important; }
-.text-cyan { color: cyan !important; }
-.text-yellow { color: yellow !important; }
-.bg-nebula-red-dim { background: rgba(255, 0, 0, 0.1) !important; }
-.bg-white-dim-05 { background: rgba(255, 255, 255, 0.05) !important; }
-.full-width { width: 100% !important; }
-.margin-top-1 { margin-top: 0.5rem !important; }
-.margin-top-2 { margin-top: 1rem !important; }
-.margin-top-3 { margin-top: 1.5rem !important; }
-.margin-top-4 { margin-top: 2rem !important; }
-.font-bold { font-weight: bold !important; }
-.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.text-nebula-red {
+  color: var(--nebula-red) !important;
+}
+
+.text-cyan {
+  color: cyan !important;
+}
+
+.text-yellow {
+  color: yellow !important;
+}
+
+.bg-nebula-red-dim {
+  background: rgba(255, 0, 0, 0.1) !important;
+}
+
+.bg-white-dim-05 {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.full-width {
+  width: 100% !important;
+}
+
+.margin-top-1 {
+  margin-top: 0.5rem !important;
+}
+
+.margin-top-2 {
+  margin-top: 1rem !important;
+}
+
+.margin-top-3 {
+  margin-top: 1.5rem !important;
+}
+
+.margin-top-4 {
+  margin-top: 2rem !important;
+}
+
+.font-bold {
+  font-weight: bold !important;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
 /* Step 1: Docking Refinements */
 .compass-dial {
@@ -687,15 +714,41 @@ h3,
   margin-bottom: 1.5rem;
 }
 
-.text-08rem { font-size: 0.8rem !important; }
-.text-07rem { font-size: 0.7rem !important; }
-.text-06rem { font-size: 0.6rem !important; }
-.text-opacity-40 { color: rgba(255, 255, 255, 0.4) !important; }
-.text-opacity-60 { color: rgba(255, 255, 255, 0.6) !important; }
-.italic-text { font-style: italic !important; }
-.border-top-dim { border-top: 1px solid rgba(255, 255, 255, 0.05) !important; }
-.pt-1 { padding-top: 0.3rem !important; }
-.margin-bottom-1 { margin-bottom: 0.5rem !important; }
+.text-08rem {
+  font-size: 0.8rem !important;
+}
+
+.text-07rem {
+  font-size: 0.7rem !important;
+}
+
+.text-06rem {
+  font-size: 0.6rem !important;
+}
+
+.text-opacity-40 {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.text-opacity-60 {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.italic-text {
+  font-style: italic !important;
+}
+
+.border-top-dim {
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.pt-1 {
+  padding-top: 0.3rem !important;
+}
+
+.margin-bottom-1 {
+  margin-bottom: 0.5rem !important;
+}
 
 .smartphone-container {
   position: relative;
@@ -705,7 +758,7 @@ h3,
 }
 
 .telescope-svg {
-  filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));
 }
 
 .absolute-pos {
@@ -716,12 +769,25 @@ h3,
   filter: drop-shadow(0 0 5px cyan) !important;
 }
 
-.text-085rem { font-size: 0.85rem !important; }
-.text-09rem { font-size: 0.9rem !important; }
-.text-065rem { font-size: 0.65rem !important; }
+.text-085rem {
+  font-size: 0.85rem !important;
+}
 
-.line-height-14 { line-height: 1.4 !important; }
-.text-left { textAlign: left !important; }
+.text-09rem {
+  font-size: 0.9rem !important;
+}
+
+.text-065rem {
+  font-size: 0.65rem !important;
+}
+
+.line-height-14 {
+  line-height: 1.4 !important;
+}
+
+.text-left {
+  text-align: left !important;
+}
 
 /* Step 4 Phase 2: Lint Resolution & Dynamic Positioning */
 :root {
@@ -803,4 +869,233 @@ h3,
 
 .margin-bottom-05rem {
   margin-bottom: 0.5rem !important;
+}
+
+/* Systemic Cleanup Styles */
+.margin-top-1rem {
+  margin-top: 1rem !important;
+}
+
+.margin-top-1-5rem {
+  margin-top: 1.5rem !important;
+}
+
+.margin-top-3rem {
+  margin-top: 3rem !important;
+}
+
+.margin-bottom-1-5rem {
+  margin-bottom: 1.5rem !important;
+}
+
+.margin-bottom-2rem {
+  margin-bottom: 2rem !important;
+}
+
+.text-075rem {
+  font-size: 0.75rem !important;
+}
+
+.text-2-5rem {
+  font-size: 2.5rem !important;
+}
+
+.text-shadow-cyan {
+  text-shadow: 0 0 10px cyan !important;
+}
+
+/* Step 2: Orbit Dance */
+.orbit-ring-outer {
+  width: 280px;
+  height: 280px;
+  border: 1px solid rgba(255, 0, 0, 0.2);
+  border-radius: 50%;
+}
+
+.orbit-compass-dial {
+  position: relative;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  border: 2px solid var(--nebula-red);
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+}
+
+.orbit-trail-point {
+  width: 4px;
+  height: 4px;
+  background: cyan;
+  border-radius: 50%;
+  box-shadow: 0 0 8px cyan;
+}
+
+.orbit-tick {
+  position: absolute;
+  width: 2px;
+  height: 10px;
+}
+
+.score-hologram-pos {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  text-align: right;
+}
+
+.orbit-guidance-card {
+  margin-top: 1.5rem;
+  padding: 1.2rem;
+  border-left: 4px solid cyan;
+  background: rgba(0, 255, 255, 0.05);
+  text-align: left;
+}
+
+/* Step 3: Event Horizon */
+.event-horizon-visual {
+  height: 500px;
+  cursor: none;
+}
+
+.grav-ripple {
+  width: 100px;
+  height: 100px;
+  border: 2px solid var(--nebula-red);
+  border-radius: 50%;
+  background: rgba(255, 0, 0, 0.05);
+}
+
+.target-sun {
+  width: 20px;
+  height: 20px;
+  background: var(--nebula-red);
+  border-radius: 50%;
+}
+
+.probe-pointer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  margin-left: -15px;
+  margin-top: -15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  filter: drop-shadow(0 0 5px white);
+}
+
+/* App & Global */
+.mission-success-container {
+  padding: 3rem;
+  text-align: center;
+}
+
+.reset-mission-btn {
+  padding: 1rem 2rem;
+  margin-top: 3rem;
+  color: white;
+  cursor: pointer;
+}
+
+/* Step 3 & Extra Utility */
+.rotate-minus-45 {
+  transform: rotate(-45deg);
+}
+
+.bg-nebula-red-dim-2 {
+  background: rgba(255, 0, 0, 0.2) !important;
+}
+
+.blur-10px {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.max-width-600 {
+  max-width: 600px !important;
+}
+
+.text-shadow-cyan-glow {
+  text-shadow: 0 0 15px cyan !important;
+}
+
+.flex-start-gap-08 {
+  justify-content: flex-start !important;
+  gap: 0.8rem !important;
+}
+
+/* Dynamic Residuals */
+.orbit-dial-container {
+  position: relative;
+  height: 350px;
+}
+
+.letter-spacing-01 {
+  letter-spacing: 0.1rem !important;
+}
+
+.flex-start-gap-05 {
+  justify-content: flex-start !important;
+  gap: 0.5rem !important;
+}
+
+.locked-blur {
+  filter: blur(5px) !important;
+  pointer-events: none !important;
+}
+
+.margin-bottom-03rem {
+  margin-bottom: 0.3rem !important;
+}
+
+/* Variable-based dynamics */
+.btn-step2-complete {
+  margin-top: 1.5rem;
+  padding: 1rem 2rem;
+  color: white;
+  cursor: pointer;
+}
+
+.orbit-score-gauge {
+  height: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.margin-bottom-03rem {
+  margin-bottom: 0.3rem !important;
+}
+
+.text-white {
+  color: white !important;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+/* Final Residual Fixes */
+.border-nebula-red {
+  border: 1px solid var(--nebula-red) !important;
+}
+
+.text-1-2rem {
+  font-size: 1.2rem !important;
+}
+
+.text-shadow-red-glow {
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.8) !important;
+}
+
+.text-shadow-cyan-glow {
+  text-shadow: 0 0 15px cyan !important;
+}
+
+.flex-start-gap-08 {
+  justify-content: flex-start !important;
+  gap: 0.8rem !important;
 }

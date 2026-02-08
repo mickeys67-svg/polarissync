@@ -115,14 +115,14 @@ export const translations: Record<Language, Translations> = {
         },
         step2: {
             title: "ORBIT DANCE",
-            subtitle: "Aligning celestial coordinates...",
+            subtitle: "Calibrating RA axis by physical rotation...",
             confidence: "ALIGNMENT CONFIDENCE",
-            instruction: "SWING THE TELESCOPE SLOWLY",
+            instruction: "SWING THE TELESCOPE SLOWLY (60°)",
             button: "LOCK ORBIT",
-            detail: "Rotate the telescope's Right Ascension (RA) axis slowly by 60 degrees. Maintain a steady pace to allow the AI to map the celestial curvature.",
+            detail: "Physically rotate the telescope's Right Ascension (RA) axis by 60 degrees. This allows the AI to synchronize your physical position with the celestial map.",
             direction: "ROTATE RIGHT (CLOCKWISE)",
-            lockOrientation: "ORIENTATION LOCK REQUIRED",
-            lockButton: "ACTIVATE LANDSCAPE LOCK"
+            lockOrientation: "STABILITY LOCK",
+            lockButton: "ACTIVATE PORTRAIT LOCK"
         },
         step3: {
             title: "EVENT HORIZON",
@@ -190,15 +190,15 @@ export const translations: Record<Language, Translations> = {
             manualCalibration: "수동 캘리브레이션"
         },
         step2: {
-            title: "스윙 캘리브레이션",
-            subtitle: "천체 좌표 정렬 중...",
+            title: "적경축 스윙 정렬 (Orbit Dance)",
+            subtitle: "망원경의 적경(RA) 축을 물리적으로 회전하여 좌표를 동기화합니다.",
             confidence: "정렬 신뢰도",
-            instruction: "망원경을 천천히 회전시켜 주세요",
+            instruction: "망원경을 60도 가량 천천히 회전시켜 주세요",
             button: "궤도 고정",
-            detail: "망원경의 적경(RA) 축을 60도 정도 천천히 회전시키세요. AI가 천구의 곡률을 매핑할 수 있도록 일정한 속도를 유지해 주세요.",
+            detail: "망원경의 적경(RA) 축을 시계 방향으로 60도 가량 천천히 회전시키세요. 실제 회전 각도가 감지되어야 정렬 점수가 상승하며 미션이 진행됩니다.",
             direction: "오른쪽으로 회전 (시계 방향)",
-            lockOrientation: "화면 회전 고정 필요",
-            lockButton: "가로 모드로 고정하기"
+            lockOrientation: "안정화 필요",
+            lockButton: "세로 모드 고정 (시작)"
         },
         step3: {
             title: "정밀 타겟팅",

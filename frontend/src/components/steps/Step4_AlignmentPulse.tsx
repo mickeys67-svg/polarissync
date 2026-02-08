@@ -49,13 +49,14 @@ const Step4_AlignmentPulse: React.FC<Step4_Props> = ({ onComplete, t }) => {
                     {/* True NCP Target Circle (0.7° Offset Area) */}
                     <motion.div
                         initial={{ opacity: 0.3 }}
-                        animate={{ opacity: isAligned ? 1 : 0.5, scale: isAligned ? [1, 1.1, 1] : 1 }}
+                        animate={{
+                            opacity: isAligned ? 1 : 0.5,
+                            scale: isAligned ? [1, 1.1, 1] : 1,
+                            borderColor: isAligned ? '#00FFFF' : '#FF0000',
+                            boxShadow: `0 0 10px ${isAligned ? '#00FFFF' : '#FF0000'}`
+                        }}
                         transition={{ repeat: Infinity, duration: 2 }}
                         className={`absolute-center polaris-target-area ${isAligned ? 'text-cyan' : 'text-nebula-red'}`}
-                        style={{
-                            border: `2px solid ${isAligned ? 'cyan' : 'var(--nebula-red)'}`,
-                            boxShadow: `0 0 10px ${isAligned ? 'cyan' : 'var(--nebula-red)'}`
-                        }}
                     />
                     <span className={`font-orbitron ncp-label ncp-label-dynamic ${isAligned ? 'text-cyan' : 'text-nebula-red'}`}>
                         NCP ({ALIGNMENT_CONFIG.NCP_OFFSET_DEG}°)
@@ -64,19 +65,19 @@ const Step4_AlignmentPulse: React.FC<Step4_Props> = ({ onComplete, t }) => {
                     {/* Horizontal Light Pillar (Altitude Axis) */}
                     <motion.div
                         className="absolute-center pillar-h"
-                        style={{
-                            background: `linear-gradient(90deg, transparent, ${isAligned ? 'cyan' : 'var(--nebula-red)'}, transparent)`,
-                            boxShadow: `0 0 8px ${isAligned ? 'cyan' : 'var(--nebula-red)'}`
-                        } as React.CSSProperties}
+                        animate={{
+                            background: `linear-gradient(90deg, transparent, ${isAligned ? '#00FFFF' : '#FF0000'}, transparent)`,
+                            boxShadow: `0 0 8px ${isAligned ? '#00FFFF' : '#FF0000'}`
+                        }}
                     />
 
                     {/* Vertical Light Pillar (Azimuth Axis) */}
                     <motion.div
                         className="absolute-center pillar-v"
-                        style={{
-                            background: `linear-gradient(0deg, transparent, ${isAligned ? 'cyan' : 'var(--nebula-red)'}, transparent)`,
-                            boxShadow: `0 0 8px ${isAligned ? 'cyan' : 'var(--nebula-red)'}`
-                        } as React.CSSProperties}
+                        animate={{
+                            background: `linear-gradient(0deg, transparent, ${isAligned ? '#00FFFF' : '#FF0000'}, transparent)`,
+                            boxShadow: `0 0 8px ${isAligned ? '#00FFFF' : '#FF0000'}`
+                        }}
                     />
 
                     {/* Precision Crosshair (Polaris Center) */}
@@ -125,12 +126,12 @@ const Step4_AlignmentPulse: React.FC<Step4_Props> = ({ onComplete, t }) => {
                     )}
 
                     {/* Precise Control Sliders */}
-                    <div
+                    <motion.div
                         className="flex-column slider-section"
-                        style={{
+                        animate={{
                             '--h-pos': `${hPos}%`,
                             '--v-pos': `${vPos}%`
-                        } as React.CSSProperties}
+                        } as any}
                     >
                         <div className="slider-group">
                             <div className="flex-between margin-bottom-05rem">
@@ -174,19 +175,19 @@ const Step4_AlignmentPulse: React.FC<Step4_Props> = ({ onComplete, t }) => {
                                 <span className="text-white-dim slider-minmax-text">{t.up}</span>
                             </div>
                         </div>
-                    </div>
-
-                    {isAligned && (
-                        <motion.button
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            onClick={onComplete}
-                            className="glass-panel font-orbitron btn-alignment-complete"
-                        >
-                            {t.button}
-                        </motion.button>
-                    )}
+                    </motion.div>
                 </div>
+
+                {isAligned && (
+                    <motion.button
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        onClick={onComplete}
+                        className="glass-panel font-orbitron btn-alignment-complete"
+                    >
+                        {t.button}
+                    </motion.button>
+                )}
             </motion.div>
         </div>
     );

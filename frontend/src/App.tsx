@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import CelestialBackground from './components/CelestialBackground';
 import FullScreenLayout from './components/layout/FullScreenLayout';
@@ -7,7 +7,7 @@ import Step2_OrbitDance from './components/steps/Step2_OrbitDance';
 import Step3_EventHorizon from './components/steps/Step3_EventHorizon';
 import Step4_AlignmentPulse from './components/steps/Step4_AlignmentPulse';
 import { translations } from './translations';
-import type { Language, Translations } from './translations';
+import type { Translations } from './translations';
 
 import { STEPS } from './constants';
 import { useMissionState } from './hooks/useMissionState';
@@ -50,11 +50,10 @@ const App: React.FC = () => {
               className="glass-panel mission-success-container"
             >
               <h1 className="glow-text-red responsive-hero-title">{t.final.success}</h1>
-              <p className="font-orbitron" style={{ marginTop: '1rem' }}>{t.final.message}</p>
+              <p className="font-orbitron margin-top-1rem">{t.final.message}</p>
               <button
                 onClick={resetMission}
-                className="glass-panel font-orbitron"
-                style={{ padding: '1rem 2rem', marginTop: '3rem', color: 'white', cursor: 'pointer' }}
+                className="glass-panel font-orbitron reset-mission-btn"
               >
                 {t.final.button}
               </button>
