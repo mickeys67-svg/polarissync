@@ -54,6 +54,12 @@ const Step2_OrbitDance: React.FC<Step2_Props> = ({ onComplete, t }) => {
         }
     };
 
+    const resetSensor = () => {
+        setStartAlpha(orientation.displayRotation);
+        setScore(0);
+        setRotation(0);
+    };
+
     const [startAlpha, setStartAlpha] = useState<number | null>(null);
     const { data: orientation, status: sensorStatus, startTracking } = useDeviceOrientation();
 
@@ -68,26 +74,29 @@ const Step2_OrbitDance: React.FC<Step2_Props> = ({ onComplete, t }) => {
 
         // Wait for sensor to be stable before setting the reference point
         if (orientation.isStable) {
-            setStartAlpha(orientation.alpha);
+            setStartAlpha(orientation.displayRotation);
         }
-    }, [isLocked, sensorStatus, orientation.alpha, orientation.isStable, startAlpha]);
+    }, [isLocked, sensorStatus, orientation.displayRotation, orientation.isStable, startAlpha]);
 
     useEffect(() => {
         if (!isLocked || sensorStatus !== 'success' || startAlpha === null) return;
 
-        // Calculate delta rotation (handling 360 jump)
-        let delta = orientation.alpha - startAlpha;
+        // Calculate delta rotation using smoothed displayRotation
+        let delta = orientation.displayRotation - startAlpha;
         if (delta > 180) delta -= 360;
         if (delta < -180) delta += 360;
 
-        // Current rotation for visual feedback
+        // Visual feedback
         setRotation(delta);
 
         // Progress logic: target 60 degrees rotation = 100%
-        // Using absolute value because user might rotate in either direction, 
-        // though the UI suggests clockwise, physical alignment just needs the offset delta.
         const TARGET_ANGLE = 60;
         const currentDelta = Math.abs(delta);
+
+        // Logic Guard: Prevent sudden jumps from noise
+        // If the movement is too extreme (e.g. > 45 deg in one frame), ignore it
+        if (Math.abs(currentDelta - Math.abs(rotation)) > 45) return;
+
         const progress = Math.min((currentDelta / TARGET_ANGLE) * 100, 100);
         setScore(progress);
 
@@ -97,7 +106,7 @@ const Step2_OrbitDance: React.FC<Step2_Props> = ({ onComplete, t }) => {
             const id = trailIdCounter.current++;
             setTrails(t => [...t.slice(-30), { id, angle: delta }]);
         }
-    }, [orientation.alpha, isLocked, sensorStatus, startAlpha, trails.length]);
+    }, [orientation.displayRotation, isLocked, sensorStatus, startAlpha, trails.length, rotation]);
 
     // Cleanup: unlock orientation when leaving step
     useEffect(() => {
@@ -169,31 +178,60 @@ const Step2_OrbitDance: React.FC<Step2_Props> = ({ onComplete, t }) => {
 
                     {/* AI Score Hologram */}
                     <motion.div className="score-hologram-pos">
-                        <div className="font-orbitron text-cyan text-07rem">{t.confidence}</div>
-                        <div className="font-orbitron text-2-5rem text-white text-shadow-cyan">
+                        <div className="font-orbitron text-cyan text-07rem letter-spacing-02">{t.confidence}</div>
+                        <div className="font-orbitron text-3rem text-white text-shadow-cyan font-weight-800">
                             {score.toFixed(1)}%
+                        </div>
+                        <div className="flex-center gap-05rem margin-top-03rem">
+                            <div className={`status-dot ${isLocked ? 'pulse-cyan' : 'bg-red'}`} />
+                            <span className="text-06rem text-white-dim uppercase">{sensorStatus}</span>
                         </div>
                     </motion.div>
                 </div>
 
+                {/* Sensor Diagnostics Dashboard */}
+                <div className="sensor-dashboard glass-panel">
+                    <div className="diagnostic-item">
+                        <span className="label">AZIMUTH (α)</span>
+                        <span className="value cyan">{orientation.alpha.toFixed(1)}°</span>
+                    </div>
+                    <div className="diagnostic-item">
+                        <span className="label">PITCH (β)</span>
+                        <span className="value">{orientation.beta.toFixed(1)}°</span>
+                    </div>
+                    <div className="diagnostic-item">
+                        <span className="label">STABILITY</span>
+                        <span className={`value ${orientation.isStable ? 'text-green' : 'text-red'}`}>
+                            {orientation.isStable ? "STABLE" : "MOVING"}
+                        </span>
+                    </div>
+                </div>
+
                 <div className="margin-top-2">
-                    <div className="flex-center gap-08rem margin-bottom-1">
+                    <div className="flex-center gap-1rem margin-bottom-1">
                         <motion.div
-                            animate={{ rotate: [0, 60, 0] }}
+                            animate={{
+                                rotate: [0, 60, 0],
+                                scale: [1, 1.1, 1],
+                                opacity: [0.7, 1, 0.7]
+                            }}
                             transition={{
                                 repeat: Infinity,
                                 duration: 4,
-                                ease: 'easeInOut',
-                                times: [0, 0.5, 1]
+                                ease: 'easeInOut'
                             }}
+                            className="neon-icon-border"
                         >
-                            <RotateCw size={24} color="var(--nebula-red)" />
+                            <RotateCw size={28} color="var(--nebula-red)" />
                         </motion.div>
-                        <p className="font-orbitron text-nebula-red text-09rem letter-spacing-01">
-                            {t.direction}
-                        </p>
+                        <div className="text-left">
+                            <p className="font-orbitron text-nebula-red text-1rem font-weight-700 letter-spacing-01">
+                                {t.direction}
+                            </p>
+                            <p className="text-white-dim text-075rem italic">Target: 60.0° Rotation</p>
+                        </div>
                     </div>
-                    <p className="text-white-dim text-08rem margin-bottom-1-5rem">
+                    <p className="text-white-dim text-085rem margin-bottom-1-5rem line-height-15">
                         {t.instruction}
                     </p>
 

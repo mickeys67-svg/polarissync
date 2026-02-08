@@ -8,7 +8,7 @@ export interface OrientationData {
     isStable: boolean;
 }
 
-export const useDeviceOrientation = (smoothingFactor = 0.18) => {
+export const useDeviceOrientation = (smoothingFactor = 0.1) => {
     const [data, setData] = useState<OrientationData>({
         alpha: 0,
         beta: 0,
@@ -51,7 +51,8 @@ export const useDeviceOrientation = (smoothingFactor = 0.18) => {
             const isStable = sampleBuffer.current.length >= 30 && (() => {
                 const mean = sampleBuffer.current.reduce((a, b) => a + b, 0) / 30;
                 const variance = sampleBuffer.current.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / 30;
-                return variance < 15;
+                // Stricter variance threshold for better stabilization
+                return variance < 8;
             })();
 
             setData({

@@ -1,0 +1,15 @@
+{
+    "short_name": "PolarisSync",
+    "name": "PolarisSync: Telescope Alignment",
+    "icons": [
+        {
+            "src": "/vite.svg",
+            "type": "image/svg+xml",
+            "sizes": "any"
+        }
+    ],
+    "start_url": ".",
+    "display": "standalone",
+    "theme_color": "#020205",
+    "background_color": "#020205"
+}
