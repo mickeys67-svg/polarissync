@@ -119,13 +119,22 @@ const Step2_OrbitDance: React.FC<Step2_Props> = ({ onComplete, t }) => {
 
     return (
         <div className="responsive-wrapper">
-            <div className="flex-center full-width margin-bottom-1rem">
+            <div className="flex-center full-width gap-1rem margin-bottom-1rem">
                 <button
                     className={`orientation-button font-orbitron ${isLocked ? 'active' : ''}`}
                     onClick={toggleLock}
                 >
                     {isLocked ? "PORTRAIT LOCKED" : t.lockButton}
                 </button>
+                {isLocked && (
+                    <button
+                        className="reset-button font-orbitron"
+                        onClick={resetSensor}
+                        style={{ marginTop: 0 }}
+                    >
+                        RESET (0°)
+                    </button>
+                )}
             </div>
 
             <motion.div
